@@ -25,7 +25,34 @@
 <link rel="icon" href="data:,">
 <style>
 :root{color-scheme:dark;font:14px system-ui,sans-serif;background:#080d14;color:#e9f0f6}*{box-sizing:border-box}body{margin:0}header{height:76px;padding:15px 26px;margin:8px;display:flex;align-items:center;justify-content:space-between;background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #ffffff1f;border-radius:10px;text-shadow:0 1px 2px #000a}h1{font-size:19px;margin:0;letter-spacing:.12em}h1 span{color:#6fffc3}.subtitle{font-size:11px;letter-spacing:.12em;color:#91a4b6;margin-top:6px}button{background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#e9f0f6;border:1px solid #ffffff1f;border-radius:7px;padding:9px 13px;cursor:pointer}select{background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#e9f0f6;border:1px solid #ffffff1f;border-radius:7px;padding:8px 10px;width:220px}a.btn{display:inline-flex;align-items:center;gap:6px;background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#e9f0f6;border:1px solid #ffffff1f;border-radius:7px;padding:9px 13px;font-size:13.33px;text-decoration:none}a.btn:hover,a.btn:focus-visible{border-color:#6fffc3;outline:2px solid #6fffc344}@media(max-width:760px){a.btn{padding:6px 8px;font-size:11px}}button:disabled{opacity:.5;cursor:default}button:hover,button:focus-visible{border-color:#6fffc3;outline:2px solid #6fffc344}nav{display:flex;gap:8px}main{height:calc(100vh - 92px);position:relative}.scene{position:absolute;inset:0;overflow:hidden;background:#162923}canvas{display:block;width:100%;height:100%}.tag{position:absolute;top:20px;left:8px;background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #ffffff1f;text-shadow:0 1px 2px #000a;border-radius:6px;padding:10px 14px;color:#b0c1cb;font-size:11px;letter-spacing:.1em}.tag strong{color:#6fffc3}#hud-left{position:absolute;bottom:12px;left:8px;width:300px;display:flex;flex-direction:column;gap:8px;pointer-events:none}#minimap{width:100%;height:220px;background:#0b121a59;-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);border:1px solid #ffffff2e;border-radius:10px;box-shadow:inset 0 1px 0 #ffffff1a,0 8px 24px #0006}#status{background:#0b121a59;-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);border:1px solid #ffffff2e;border-radius:10px;box-shadow:inset 0 1px 0 #ffffff1a,0 8px 24px #0006;text-shadow:0 1px 2px #000a;padding:12px 16px;font-size:13px}aside{position:absolute;top:12px;right:8px;bottom:12px;width:290px;background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #ffffff1f;border-radius:10px;padding:16px 18px;overflow:hidden;text-shadow:0 1px 2px #000a}main.hud-off aside{display:none}#hud-speed{display:none;position:absolute;left:14px;top:8px;bottom:30px;align-items:center;font-size:64px;line-height:1;font-weight:700;letter-spacing:-2px;font-variant-numeric:tabular-nums;text-align:left;pointer-events:none}#hud-speed .unit{font-size:16px;letter-spacing:0;opacity:.7}main.hud-off #hud-speed{display:flex;gap:6px;align-items:baseline;padding-top:12px}main.hud-off #timing{box-sizing:border-box;min-width:min(331px,calc(100vw - 40px));max-width:min(351px,calc(100vw - 40px))}main:not(.hud-off) #timing{right:318px}.label{font-size:10px;color:#91a4b6;letter-spacing:.14em;text-transform:uppercase}.speed{font-variant-numeric:tabular-nums;font-size:56px;font-weight:650;line-height:1.1;letter-spacing:-3px}.pedals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0}.pedals meter{width:100%;height:8px;accent-color:#6fffc3}#in-brake{accent-color:#ff8e86}aside a{color:#6fffc3}.unit{color:#91a4b6;font-size:12px}.section{padding:12px 0;border-bottom:1px solid #273442}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}.number{font-variant-numeric:tabular-nums;font-size:17px;margin-top:3px;white-space:nowrap}.wheels{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.wheel{background:#18233080;border-radius:6px;padding:6px 8px;font-size:11px}.wheel span{float:right;color:#9fb5c5}.wheel meter{display:block;width:100%;height:8px;margin:4px 0 2px;accent-color:#6fffc3}.note{font-size:11px;line-height:1.6;color:#91a4b6;margin:10px 0 0}kbd{font:11px monospace;background:#233242;border:1px solid #3b5062;border-radius:3px;padding:2px 5px}#timing{position:absolute;top:20px;right:20px;background:#0b121a8c;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #ffffff1f;text-shadow:0 1px 2px #000a;border-radius:6px;padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums}#lap-time{font-size:26px;font-weight:650}#lap-delta{font-size:15px;min-height:18px}.sectors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.sector{background:#18233080;border-radius:5px;padding:6px;font-size:12px;font-variant-numeric:tabular-nums;border-bottom:3px solid #3a5065}.sector.best{border-color:#c77dff}.sector.slower{border-color:#ffc86f}.invalid{color:#ff8e86}#standings{list-style:none;margin:6px 0 0;padding:0;font-size:12px;font-variant-numeric:tabular-nums}#standings li{display:grid;grid-template-columns:22px 12px 1fr auto;gap:6px;align-items:center;padding:3px 6px;border-radius:4px}#standings b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#standings li.you{background:#1b293799;color:#6fffc3}#standings i{width:10px;height:10px;border-radius:2px;display:block}#standings b{font-weight:500;color:#91a4b6}#race-pos{font-size:13px;color:#6fffc3;letter-spacing:.08em}#pause-state{color:#ffc86f;font-size:11px;min-height:14px}#lights{position:absolute;top:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;background:#05080ce6;border:1px solid #2a3540;border-radius:8px;padding:10px 14px}#lights[hidden]{display:none}#lights span{width:30px;height:30px;border-radius:50%;background:#2a1010;border:2px solid #1a0a0a}#pit-info{font-size:12px;color:#b8c8d5;margin-top:4px;min-height:15px}.tyre{display:inline-block;width:15px;height:15px;line-height:13px;border-radius:50%;border:2px solid;font:700 9px system-ui;text-align:center;margin-right:4px;vertical-align:-3px}#standings .tyre{margin:0 0 0 4px}#lights span.on{background:#ff2a1f;box-shadow:0 0 16px #ff2a1f}@media(max-width:760px){#hud-speed{font-size:36px;left:8px;bottom:22px}main.hud-off #timing{min-width:min(320px,calc(100vw - 16px));max-width:calc(100vw - 16px)}#timing{top:8px;right:8px;padding:6px 8px}#lap-time{font-size:17px}header{padding:12px;height:94px;align-items:flex-start}h1{font-size:15px}.subtitle{font-size:9px}nav{flex-wrap:wrap;justify-content:flex-end;max-width:180px}button{padding:6px 8px;font-size:11px}main{height:calc(100vh - 110px)}main:not(.hud-off) #timing{right:204px}aside{padding:15px 12px;top:8px;right:8px;bottom:8px;width:180px}.speed{font-size:42px}.stats{gap:12px 6px}.number{font-size:17px}.tag{left:8px;top:8px;font-size:9px;padding:8px}#hud-left{width:200px}#minimap{height:150px}.wheels{gap:5px}.wheel{padding:5px}#car-section,#tyre-section{display:none}}@media(max-height:760px){#tyre-section{display:none}}
-header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,#timing{top:104px}aside{top:104px}#lights{top:114px}@media(max-width:760px){main{height:100vh}.tag,#timing{top:118px}aside{top:118px}#lights{top:118px}}</style>
+header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,#timing{top:104px}aside{top:104px}#lights{top:114px}@media(max-width:760px){main{height:100vh}.tag,#timing{top:118px}aside{top:118px}#lights{top:118px}}
+/* Driver profile */
+.profile-trigger{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 10px;min-height:38px}
+.profile-trigger img,.profile-trigger .profile-initial{width:27px;height:27px;border-radius:50%;object-fit:cover;display:block}
+.profile-trigger .profile-initial{display:grid;place-items:center;background:linear-gradient(145deg,#6fffc3,#4b86c8);color:#07131b;font-weight:800;text-shadow:none}
+.profile-trigger .profile-trigger-name{max-width:92px;overflow:hidden;text-overflow:ellipsis;font-weight:650}
+.profile-modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px}
+.profile-modal[hidden]{display:none}
+.profile-backdrop{position:absolute;inset:0;background:#02060bd9;backdrop-filter:blur(8px)}
+.profile-dialog{position:relative;width:min(440px,100%);max-height:min(90vh,720px);overflow:auto;background:#0e1823;border:1px solid #ffffff27;border-radius:16px;padding:24px;box-shadow:0 24px 80px #000b;text-shadow:none}
+.profile-dialog h2{margin:0;font-size:21px;letter-spacing:.02em}
+.profile-dialog .profile-subtitle{color:#91a4b6;font-size:12px;line-height:1.5;margin:6px 0 20px}
+.profile-close{position:absolute;right:16px;top:14px;font-size:20px;padding:5px 10px}
+.profile-picture-row{display:flex;align-items:center;gap:16px;margin:12px 0 22px}
+.profile-picture-preview{width:88px;height:88px;flex:0 0 88px;border-radius:50%;overflow:hidden;border:2px solid #6fffc3;background:linear-gradient(145deg,#17394a,#132333);display:grid;place-items:center;font-size:30px;font-weight:800;color:#6fffc3}
+.profile-picture-preview img{width:100%;height:100%;object-fit:cover}
+.profile-fields{display:grid;gap:8px}
+.profile-fields label{font-size:11px;color:#91a4b6;letter-spacing:.12em;text-transform:uppercase}
+#profile-name-input{width:100%;padding:12px 13px;border-radius:8px;border:1px solid #ffffff2b;background:#08111a;color:#e9f0f6;font:inherit;outline:none}
+#profile-name-input:focus{border-color:#6fffc3;box-shadow:0 0 0 3px #6fffc322}
+.profile-photo-controls{display:flex;gap:8px;flex-wrap:wrap}
+.profile-photo-controls button{font-size:12px}
+.profile-local-note{font-size:11px;line-height:1.5;color:#91a4b6;margin:16px 0}
+.profile-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.profile-save{background:#6fffc3;color:#07131b;border-color:#6fffc3;font-weight:750}
+#profile-status{min-height:18px;margin-top:12px;color:#6fffc3;font-size:12px}
+@media(max-width:760px){.profile-trigger{padding:5px 7px;gap:5px}.profile-trigger .profile-trigger-name{max-width:66px}.profile-dialog{padding:20px}}
+</style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
 <link rel="modulepreload" href="vendor/GLTFLoader.js"><link rel="modulepreload" href="vendor/meshopt_decoder.module.js"><link rel="modulepreload" href="src/savanna.mjs"><link rel="modulepreload" href="src/stands.mjs"><link rel="modulepreload" href="src/wildlife.mjs"><link rel="modulepreload" href="src/lake.mjs"><link rel="modulepreload" href="src/structures.mjs"><link rel="modulepreload" href="src/lakeside.mjs"><link rel="modulepreload" href="src/trackpaint.mjs">
@@ -36,7 +63,7 @@ header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,
 </head>
 <body>
 
-<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 240 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
+<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 240 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
 <script>/* Until the module fills the picker, show the circuit being loaded (name saved by its onchange), not the stadium. */
 (k => { if (k) { const o = document.querySelector('#track-select option'); o.value = k; o.textContent = sessionStorage.getItem('track-name:' + k) || 'Loading ' + k + '…'; } })(new URLSearchParams(location.search).get('track'));</script>
 <main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 240 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
@@ -48,6 +75,35 @@ header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,
 <div class="section" id="tyre-section"><div class="label">Tyres · tread temp · wear</div><div class="wheels" id="wheels"></div></div>
 <p class="note"><kbd>H</kbd> hides this panel · <a href="https://github.com/AgentiLoop/F1#controls" target="_blank" rel="noopener">controls &amp; physics notes</a></p>
 </aside></main>
+<div id="driver-profile-modal" class="profile-modal" hidden>
+  <div id="profile-backdrop" class="profile-backdrop"></div>
+  <section class="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-heading">
+    <button id="profile-close" class="profile-close" type="button" aria-label="Close driver profile">×</button>
+    <h2 id="profile-heading">Driver profile</h2>
+    <p class="profile-subtitle">Set the name and portrait shown for your car in the race standings.</p>
+    <div class="profile-picture-row">
+      <div class="profile-picture-preview">
+        <span id="profile-avatar-initial" aria-hidden="true">Y</span>
+        <img id="profile-avatar-image" alt="Driver profile picture" hidden>
+      </div>
+      <div class="profile-photo-controls">
+        <button id="profile-choose-photo" type="button">Choose picture</button>
+        <button id="profile-remove-photo" type="button">Remove</button>
+        <input id="profile-photo-input" type="file" accept="image/*" hidden>
+      </div>
+    </div>
+    <div class="profile-fields">
+      <label for="profile-name-input">Driver name</label>
+      <input id="profile-name-input" type="text" maxlength="24" autocomplete="nickname" placeholder="Enter your driver name">
+    </div>
+    <p class="profile-local-note">Your profile picture and name are saved in this browser on this device. They are not uploaded to a server or shared between devices.</p>
+    <div class="profile-actions">
+      <button id="profile-cancel" type="button">Cancel</button>
+      <button id="profile-save" class="profile-save" type="button">Save profile</button>
+    </div>
+    <div id="profile-status" role="status" aria-live="polite"></div>
+  </section>
+</div>
 <script type="module">
 import * as THREE from './vendor/three.module.js';
 import { RoomEnvironment } from './vendor/RoomEnvironment.js';
@@ -74,6 +130,192 @@ const $ = id => document.getElementById(id);
 const canvas = $('track');
 let sim, paused = false, overview = false, cockpit = false, previousTime = null, snapCamera = true;
 let width = 1, height = 1;
+let driverProfile = { name: 'You', avatarBlob: null, avatarUrl: null };
+let pendingProfilePhoto = undefined;
+let pendingProfilePhotoUrl = null;
+let profileDbPromise = null;
+const PROFILE_NAME_KEY = 'agentiloop-f1-driver-name';
+function profileInitial(name) { return Array.from(String(name || 'You').trim())[0]?.toUpperCase() || 'Y'; }
+function openProfileDb() {
+  if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB is unavailable'));
+  if (!profileDbPromise) profileDbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open('agentiloop-f1-driver-profile', 1);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('profile')) request.result.createObjectStore('profile'); };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error('Could not open profile storage'));
+  });
+  return profileDbPromise;
+}
+async function readProfilePhoto() {
+  const db = await openProfileDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction('profile', 'readonly').objectStore('profile').get('avatar');
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error || new Error('Could not read profile picture'));
+  });
+}
+async function writeProfilePhoto(blob) {
+  const db = await openProfileDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('profile', 'readwrite');
+    tx.objectStore('profile').put(blob, 'avatar');
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error || new Error('Could not save profile picture'));
+    tx.onabort = () => reject(tx.error || new Error('Profile picture save was cancelled'));
+  });
+}
+async function deleteProfilePhoto() {
+  const db = await openProfileDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('profile', 'readwrite');
+    tx.objectStore('profile').delete('avatar');
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error || new Error('Could not remove profile picture'));
+    tx.onabort = () => reject(tx.error || new Error('Profile picture removal was cancelled'));
+  });
+}
+function showProfileImages(url) {
+  const headerImage = $('driver-avatar-image'), headerInitial = $('driver-avatar-initial');
+  const modalImage = $('profile-avatar-image'), modalInitial = $('profile-avatar-initial');
+  for (const [image, initial] of [[headerImage, headerInitial], [modalImage, modalInitial]]) {
+    if (url) { image.src = url; image.hidden = false; initial.hidden = true; }
+    else { image.removeAttribute('src'); image.hidden = true; initial.hidden = false; }
+  }
+}
+function refreshDriverProfileUi() {
+  const initial = profileInitial(driverProfile.name);
+  $('driver-profile-name').textContent = driverProfile.name;
+  $('driver-avatar-initial').textContent = initial;
+  $('profile-avatar-initial').textContent = initial;
+  showProfileImages(driverProfile.avatarUrl);
+  if (sim?.entries?.[0]) sim.entries[0].name = driverProfile.name;
+}
+function previewProfilePhoto(url, name) {
+  const initial = profileInitial(name);
+  $('profile-avatar-initial').textContent = initial;
+  const image = $('profile-avatar-image');
+  if (url) { image.src = url; image.hidden = false; $('profile-avatar-initial').hidden = true; }
+  else { image.removeAttribute('src'); image.hidden = true; $('profile-avatar-initial').hidden = false; }
+}
+async function loadDriverProfile() {
+  try {
+    const savedName = localStorage.getItem(PROFILE_NAME_KEY);
+    if (savedName && savedName.trim()) driverProfile.name = savedName.trim().slice(0, 24);
+  } catch {}
+  try {
+    driverProfile.avatarBlob = await readProfilePhoto();
+    if (driverProfile.avatarBlob) driverProfile.avatarUrl = URL.createObjectURL(driverProfile.avatarBlob);
+  } catch (error) {
+    console.warn('Driver profile picture could not be loaded:', error);
+  }
+  refreshDriverProfileUi();
+}
+function imageFileToAvatar(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('That picture could not be read.'));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error('Choose a valid image file.'));
+      image.onload = () => {
+        const crop = Math.min(image.naturalWidth, image.naturalHeight);
+        if (!crop) { reject(new Error('That picture has no image dimensions.')); return; }
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 512;
+        const context = canvas.getContext('2d');
+        if (!context) { reject(new Error('Image preview is unavailable.')); return; }
+        context.drawImage(image, (image.naturalWidth - crop) / 2, (image.naturalHeight - crop) / 2, crop, crop, 0, 0, 512, 512);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The picture could not be processed.')), 'image/webp', 0.86);
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function closeDriverProfile() {
+  $('driver-profile-modal').hidden = true;
+  pendingProfilePhoto = undefined;
+  if (pendingProfilePhotoUrl) URL.revokeObjectURL(pendingProfilePhotoUrl);
+  pendingProfilePhotoUrl = null;
+  previewProfilePhoto(driverProfile.avatarUrl, driverProfile.name);
+  $('profile-photo-input').value = '';
+}
+function openDriverProfile() {
+  pendingProfilePhoto = undefined;
+  if (pendingProfilePhotoUrl) URL.revokeObjectURL(pendingProfilePhotoUrl);
+  pendingProfilePhotoUrl = null;
+  $('profile-name-input').value = driverProfile.name;
+  $('profile-status').textContent = '';
+  previewProfilePhoto(driverProfile.avatarUrl, driverProfile.name);
+  $('driver-profile-modal').hidden = false;
+  $('profile-name-input').focus();
+}
+$('profile-open').addEventListener('click', openDriverProfile);
+$('profile-close').addEventListener('click', closeDriverProfile);
+$('profile-cancel').addEventListener('click', closeDriverProfile);
+$('profile-backdrop').addEventListener('click', closeDriverProfile);
+$('profile-name-input').addEventListener('input', () => {
+  previewProfilePhoto(pendingProfilePhotoUrl || driverProfile.avatarUrl, $('profile-name-input').value);
+});
+$('profile-choose-photo').addEventListener('click', () => $('profile-photo-input').click());
+$('profile-photo-input').addEventListener('change', async event => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { $('profile-status').textContent = 'Choose an image file.'; event.target.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { $('profile-status').textContent = 'Please choose an image smaller than 5 MB.'; event.target.value = ''; return; }
+  $('profile-status').textContent = 'Preparing picture…';
+  try {
+    const blob = await imageFileToAvatar(file);
+    if (pendingProfilePhotoUrl) URL.revokeObjectURL(pendingProfilePhotoUrl);
+    pendingProfilePhoto = blob;
+    pendingProfilePhotoUrl = URL.createObjectURL(blob);
+    previewProfilePhoto(pendingProfilePhotoUrl, $('profile-name-input').value);
+    $('profile-status').textContent = 'Picture ready. Save your profile to keep it.';
+  } catch (error) {
+    $('profile-status').textContent = error.message || 'Could not use that picture.';
+  }
+  event.target.value = '';
+});
+$('profile-remove-photo').addEventListener('click', () => {
+  if (pendingProfilePhotoUrl) URL.revokeObjectURL(pendingProfilePhotoUrl);
+  pendingProfilePhotoUrl = null;
+  pendingProfilePhoto = null;
+  previewProfilePhoto(null, $('profile-name-input').value);
+  $('profile-status').textContent = 'Picture will be removed when you save.';
+});
+$('profile-save').addEventListener('click', async () => {
+  const name = $('profile-name-input').value.trim().slice(0, 24);
+  if (!name) { $('profile-status').textContent = 'Enter a driver name first.'; $('profile-name-input').focus(); return; }
+  let photoSaved = true;
+  if (pendingProfilePhoto !== undefined) {
+    try {
+      if (pendingProfilePhoto) await writeProfilePhoto(pendingProfilePhoto);
+      else await deleteProfilePhoto();
+    } catch (error) {
+      photoSaved = false;
+      $('profile-status').textContent = 'Your name can be saved, but the picture could not be stored in this browser.';
+      console.warn('Driver profile picture could not be saved:', error);
+    }
+  }
+  driverProfile.name = name;
+  try { localStorage.setItem(PROFILE_NAME_KEY, name); } catch { $('profile-status').textContent = 'The browser did not allow the driver name to be saved.'; }
+  if (photoSaved && pendingProfilePhoto !== undefined) {
+    if (driverProfile.avatarUrl) URL.revokeObjectURL(driverProfile.avatarUrl);
+    driverProfile.avatarBlob = pendingProfilePhoto || null;
+    driverProfile.avatarUrl = pendingProfilePhotoUrl || null;
+    pendingProfilePhotoUrl = null;
+    pendingProfilePhoto = undefined;
+  } else if (pendingProfilePhotoUrl) {
+    URL.revokeObjectURL(pendingProfilePhotoUrl);
+    pendingProfilePhotoUrl = null;
+  }
+  refreshDriverProfileUi();
+  if (photoSaved) $('profile-status').textContent = 'Profile saved on this device.';
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !$('driver-profile-modal').hidden) closeDriverProfile();
+});
+
 const keys = new Set();
 const halfStraight = 220, radius = 90, roadWidth = 15;
 // ?track=<key> (circuits.mjs) drives a real circuit, as a solo time trial
@@ -143,7 +385,9 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
-    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } }); timer.restart();
+    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
+  sim.entries[0].name = driverProfile.name;
+  timer.restart();
   wearSkins(cars.map((_, i) => i));
   cars.forEach((r, i) => { r.model.group.visible = !i || opponents; r.wheelAngle.fill(0); });
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
@@ -659,6 +903,7 @@ function frame(now) {
   previousTime = now; render(dt); requestAnimationFrame(frame);
 }
 $('field').textContent = `Opponents: ${opponents ? 'on' : 'off'}`; $('field').setAttribute('aria-pressed', String(opponents)); $('race-section').hidden = !opponents;
+await loadDriverProfile();
 reset(); resize(); requestAnimationFrame(frame);
 // Read-only snapshots for browser smoke tests and telemetry tools.
 window.f1Lab = {
