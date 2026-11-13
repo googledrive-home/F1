@@ -210,8 +210,9 @@ export const inDrsZone = (track, z, p) => { const L = track.length, a = d => ((d
 // runUp (circuit, solo running): the player starts runUp m before the line on
 // the racing line, so lap 1 begins with a flying start. freeDrs: DRS opens in
 // any zone from the start, as in practice and qualifying.
-export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = {}, start = false, laps = 0, compoundRule = false, fuel = true, drs = true, runUp = 0, freeDrs = false } = {}) {
+export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = {}, start = false, laps = 0, compoundRule = false, fuel = true, drs = true, runUp = 0, freeDrs = false, fixedDt = FIXED_DT } = {}) {
   const o = { ...RACE_DEFAULTS, ...options };
+  if (!(Number.isFinite(fixedDt) && fixedDt > 0 && fixedDt <= 1 / 60)) throw new RangeError('Race timestep must be positive and no greater than 1/60 s');
   const rand = random(start?.seed ?? (Math.random() * 2 ** 32));
   // Separate stream for AI form, mistakes and wear (fixed when unseeded, so
   // races without a seeded start stay reproducible).
@@ -398,7 +399,7 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
   // free of cars alongside, and back to the racing line once that is as good.
   // New passing moves start only on a straight before the braking zone, unless
   // the car is slow (e.g. stuck behind a stopped car).
-  function aiCommand(i, dt = FIXED_DT) {
+  function aiCommand(i, dt = fixedDt) {
     const e = entries[i], car = e.car, speed = car.telemetry.speed;
     // Dirty air: corner speed scaled by the expected loss of normal load (the
     // downforce share of it is taken as ~45% at this circuit's corner speeds),
@@ -775,10 +776,10 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       command = { ...command, drs: e.drsAllowed && (!e.manual || command.drs === true) };
       return (e.command = command);
     });
-    entries.forEach((e, i) => step(e.car, commands[i], FIXED_DT, surfaceAt, barrierAt, groundAt));
+    entries.forEach((e, i) => step(e.car, commands[i], fixedDt, surfaceAt, barrierAt, groundAt));
     for (let i = 0; i < entries.length; i++)
       for (let j = i + 1; j < entries.length; j++) resolveCarContact(entries[i].car, entries[j].car, o);
-    time += FIXED_DT;
+    time += fixedDt;
     for (const e of entries) {
       const p = track.progress(e.car.x, e.car.y);
       let d = p - e.last; if (d < -length / 2) d += length; else if (d > length / 2) d -= length;
@@ -792,7 +793,7 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       if (laps && !e.finish) {
         const line = flagTime === null ? laps * length : Math.floor(e.covered / length) * length;
         if (line >= length && before < line && e.covered >= line) {
-          const t = time - FIXED_DT * (e.covered - line) / (e.covered - before);
+          const t = time - fixedDt * (e.covered - line) / (e.covered - before);
           flagTime ??= t;
           e.finish = { laps: Math.round(line / length), time: t - lightsOut };
         }
@@ -802,13 +803,13 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
         if (crossing(before, e.covered, z.end) !== null) e.drsArmed.delete(z);
         const f = crossing(before, e.covered, z.detection);
         if (f === null || e.pit || e.retired || e.finish) continue;
-        const t = time - FIXED_DT * f;
+        const t = time - fixedDt * f;
         e.drsGap = t - z.last;
         if (drsEnabled() && e.drsGap <= o.drsGap) e.drsArmed.add(z); else e.drsArmed.delete(z);
         z.last = t;
       }
       updatePit(e);
-      e.stuck = !e.player && !e.pit && !e.recovery && !e.finish && !e.retired && time > lightsOut + 2 && e.car.telemetry.speed < 1 ? (e.stuck ?? 0) + FIXED_DT : 0;
+      e.stuck = !e.player && !e.pit && !e.recovery && !e.finish && !e.retired && time > lightsOut + 2 && e.car.telemetry.speed < 1 ? (e.stuck ?? 0) + fixedDt : 0;
       if (e.stuck > o.retireAfter) e.retired = { time: time - lightsOut, lap: Math.max(0, Math.floor(e.covered / length)) + 1 };
       if (start && !e.jumpStart && time < lightsOut && e.covered - e.grid > o.jumpDistance) { e.jumpStart = true; e.penalty += o.jumpPenalty; }
       // Reaction: from lights out to the first firm throttle (> 50%).
@@ -819,7 +820,7 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
   }
 
   return {
-    entries, options: o, aiCommand, pit, compoundRule: rule, drsZones,
+    entries, options: o, aiCommand, pit, compoundRule: rule, drsZones, fixedDt,
     get drsEnabled() { return freeDrs || drsEnabled(); }, inPitLane: car => inPitLane(car),
     // Player's pit request: the compound to fit at the next stop (null cancels).
     // On autopilot the car boxes at the next pit entry; driving, stop in the box.
@@ -849,7 +850,7 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       if (!Number.isFinite(elapsed) || elapsed < 0) throw new RangeError('Elapsed time must be finite and nonnegative');
       accumulator += Math.min(elapsed, 0.25);
       let steps = 0;
-      while (accumulator + 1e-12 >= FIXED_DT) { stepAll(input, surfaceAt, barrierAt, groundAt); accumulator = Math.max(0, accumulator - FIXED_DT); steps++; }
+      while (accumulator + 1e-12 >= fixedDt) { stepAll(input, surfaceAt, barrierAt, groundAt); accumulator = Math.max(0, accumulator - fixedDt); steps++; }
       return steps;
     },
     // Running order by distance covered since the start line; interval to the
