@@ -448,6 +448,7 @@ const halfStraight = 220, radius = 90, roadWidth = 15;
 const pageQuery = new URLSearchParams(location.search);
 const circuitKey = Object.hasOwn(CIRCUITS, pageQuery.get('track')) ? pageQuery.get('track') : null;
 const qualityMode = pageQuery.get('quality') === 'high' ? 'high' : 'performance';
+let performanceScale = qualityMode === 'high' ? 1.5 : 0.9, lowFpsSamples = 0;
 const trackDisplayName = circuitKey ? CIRCUITS[circuitKey].name : 'Stadium test track';
 setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Loading ${trackDisplayName}`, 'Downloading circuit data', 8);
 const scenery = circuitKey && Object.hasOwn(SCENERY_STYLE, circuitKey) ? await loadScenery(circuitKey) : undefined;
@@ -807,8 +808,12 @@ function poseCar(m, c, angles, dt) {
 function resize() {
   const bounds = canvas.getBoundingClientRect();
   width = Math.max(bounds.width, 1); height = Math.max(bounds.height, 1);
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, qualityMode === 'high' ? 1.5 : 1)); renderer.setSize(width, height, false);
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, performanceScale)); renderer.setSize(width, height, false);
   camera.aspect = width / height; camera.updateProjectionMatrix();
+}
+function applyPerformanceScale() {
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, performanceScale));
+  renderer.setSize(width, height, false);
 }
 new ResizeObserver(resize).observe(canvas);
 const forward = new THREE.Vector3(), chase = new THREE.Vector3(), look = new THREE.Vector3();
@@ -907,7 +912,16 @@ function render(dt = 0, now = performance.now()) {
   const c = sim.car;
   fadeTime(); updateChevrons(); placeScene(dt); world.userData.update?.(dt);
   renderedFrames++;
-  if (now - fpsWindowStart >= 1000) { measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart)); renderedFrames = 0; fpsWindowStart = now; }
+  if (now - fpsWindowStart >= 1000) {
+    measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart));
+    renderedFrames = 0; fpsWindowStart = now;
+    if (qualityMode === 'performance') {
+      if (measuredFps < 28 && performanceScale > 0.55) {
+        lowFpsSamples++;
+        if (lowFpsSamples >= 2) { performanceScale = Math.max(0.55, performanceScale - 0.12); applyPerformanceScale(); lowFpsSamples = 0; }
+      } else lowFpsSamples = 0;
+    }
+  }
   if (now - lastHudUpdate < 100) return;
   lastHudUpdate = now;
   drawMinimap();
@@ -1047,7 +1061,7 @@ function frame(now) {
   rumbleLevels = paused ? { strong: 0, weak: 0, left: 0, right: 0 } : rumbleModel.update(dt, sim.car, command);
   rumblePlayer.play([...(navigator.getGamepads?.() ?? [])].filter(p => p?.connected), rumbleLevels, now);
   previousTime = now;
-  if (sessionStarted && now - lastRenderAt >= 1000 / 30) {
+  if (sessionStarted && !paused && now - lastRenderAt >= 1000 / 30) {
     const visualDt = lastRenderAt ? Math.min((now - lastRenderAt) / 1000, 0.1) : dt;
     render(visualDt, now); lastRenderAt = now;
   }
@@ -1064,6 +1078,7 @@ function updatePauseControlLabels() {
 }
 function startSessionNow() {
   sessionStarted = true;
+  lastRenderAt = 0; fpsWindowStart = performance.now(); renderedFrames = 0; measuredFps = 0; lowFpsSamples = 0;
   $('main-menu').hidden = true; $('pause-menu').hidden = true; $('mini-hud').hidden = false;
   document.body.classList.add('session-live'); document.body.classList.remove('race-paused');
   reset(); pause(false);
