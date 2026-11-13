@@ -14,7 +14,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check browser module syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          html = Path("index.html").read_text()
+          modules = re.findall(r'<script type="module">\\s*(.*?)</script>', html, re.S)
+          if len(modules) != 1:
+              raise SystemExit(f"Expected one inline application module, found {len(modules)}")
+          Path("/tmp/f1-app.mjs").write_text(modules[0])
+          PY
+          node --check /tmp/f1-app.mjs
+          node --check src/world3d.mjs
+          node --check src/mirror3d.mjs
+      - name: Run unit tests
+        run: node --test test/*.test.mjs
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
