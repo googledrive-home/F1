@@ -119,10 +119,10 @@ body.session-live main{height:100vh}
 </head>
 <body>
 
-<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 120 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
+<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 60 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
 <script>/* Until the module fills the picker, show the circuit being loaded (name saved by its onchange), not the stadium. */
 (k => { if (k) { const o = document.querySelector('#track-select option'); o.value = k; o.textContent = sessionStorage.getItem('track-name:' + k) || 'Loading ' + k + '…'; } })(new URLSearchParams(location.search).get('track'));</script>
-<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 120 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
+<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 60 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
 <div id="pause-state" role="status"></div><div class="label">Speed · Gear <strong id="gear" aria-label="Selected gear">1</strong></div><div><span class="speed" id="speed">0</span> <span class="unit" id="speed-unit">km/h</span></div>
 <div class="pedals"><meter id="in-throttle" min="0" max="1" value="0" aria-label="Throttle command"></meter><meter id="in-brake" min="0" max="1" value="0" aria-label="Brake command"></meter></div><div class="label">Throttle / brake · <span id="input-source">keyboard</span></div>
 <div class="section"><div class="stats"><div><div class="label">Last lap</div><div class="number" id="last-lap">–:––.–––</div></div><div><div class="label">Best lap</div><div class="number" id="best-lap">–:––.–––</div></div></div><div class="sectors" id="sectors"></div></div>
@@ -149,6 +149,7 @@ body.session-live main{height:100vh}
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
+      <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
       <div class="menu-field"><label for="menu-quality">Graphics</label><select id="menu-quality"><option value="high">High detail · optimised</option><option value="performance">Performance · extra headroom</option></select></div>
     </div>
@@ -465,7 +466,11 @@ setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Preparing
 await nextPaint();
 const { surfaceAt, barrierAt } = track;
 const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined);
-let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
+const raceSession = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
+const requestedOpponentCount = Number.parseInt(pageQuery.get('opponents') || String(DEFAULT_GRID.length), 10);
+let selectedOpponentCount = Number.isFinite(requestedOpponentCount) ? Math.max(1, Math.min(DEFAULT_GRID.length, requestedOpponentCount)) : DEFAULT_GRID.length;
+let opponentCount = raceSession ? selectedOpponentCount : 0;
+let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = opponentCount > 0;
 const driver = createDriverInput();
 // Sound: the AudioContext is created on the first key press or click (autoplay policy).
 const soundModel = createSoundModel(DEFAULT_CAR);
@@ -517,12 +522,18 @@ function reset() {
   // the two-compound rule applies (races of 2+ laps).
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
-  sim = createRace(track, { grid: opponents ? DEFAULT_GRID : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
-    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: pageQuery.get('physics') === '240' ? 1 / 240 : 1 / 120, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
+  sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
+    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
   wearSkins(cars.map((_, i) => i));
-  cars.forEach((r, i) => { r.model.group.visible = !i || opponents; r.wheelAngle.fill(0); });
+  const activeSkins = new Set(skins.slice(0, sim.entries.length));
+  cars.forEach((r, i) => {
+    r.model.group.visible = activeSkins.has(i);
+    r.lowModel.group.visible = false;
+    r.lowActive = false;
+    r.wheelAngle.fill(0);
+  });
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
 }
 // Paddle shift: switches your car (only) to the manual gearbox and takes you off
@@ -593,11 +604,16 @@ if (!(root.requestFullscreen ?? root.webkitRequestFullscreen)) $('fullscreen').h
 $('fullscreen').onclick = () => fsElement() ? (document.exitFullscreen ?? document.webkitExitFullscreen).call(document) : (root.requestFullscreen ?? root.webkitRequestFullscreen).call(root);
 const showFullscreen = () => { const on = !!fsElement(); $('fullscreen').textContent = on ? 'Exit full screen' : 'Full screen'; $('fullscreen').setAttribute('aria-pressed', String(on)); };
 document.addEventListener('fullscreenchange', showFullscreen); document.addEventListener('webkitfullscreenchange', showFullscreen);
-function toggleOpponents() {
-  opponents = !opponents; reset();
-  $('field').textContent = `Opponents: ${opponents ? 'on' : 'off'}`;
+function updateOpponentToggle() {
+  $('field').textContent = `Opponents: ${opponents ? opponentCount : 'off'}`;
   $('field').setAttribute('aria-pressed', String(opponents));
   $('race-section').hidden = !opponents;
+}
+function toggleOpponents() {
+  opponentCount = opponents ? 0 : selectedOpponentCount;
+  opponents = opponentCount > 0;
+  reset();
+  updateOpponentToggle();
 }
 $('field').onclick = toggleOpponents;
 // B: no request -> box for soft -> medium -> hard -> cancel.
@@ -737,10 +753,47 @@ if (new URLSearchParams(location.search).get('car') !== 'procedural') {
   catch (err) { console.warn('rb22 car model failed to load', err); }
 }
 const buildCar = livery => carTemplate ? buildRB22Car(carTemplate, DEFAULT_CAR, livery) : buildF1Car(DEFAULT_CAR, livery);
-// One model per livery: the navy car, then each AI opponent's (helmets match the accent;
-// index: its place in the sponsor rotation and race number).
-const cars = [buildCar(), ...DEFAULT_GRID.map((spec, i) => buildCar({ paint: spec.color, accent: spec.accent, helmet: spec.accent, index: i + 1 }))]
-  .map(m => { scene.add(m.group); return { model: m, wheelAngle: [0, 0, 0, 0] }; });
+// Distant opponents switch to a five-part proxy with shared box and tyre geometry.
+// The full RB22 remains in use nearby; the proxy keeps the livery silhouette and animated wheels.
+const LOD_BOX = new THREE.BoxGeometry(1, 1, 1);
+const LOD_TYRE = new THREE.CylinderGeometry(0.31, 0.31, 0.22, 10, 1).rotateX(Math.PI / 2);
+const LOD_TYRE_MATERIAL = new THREE.MeshStandardMaterial({ color: 0x171b20, roughness: 0.92 });
+function buildOpponentProxy({ paint = 0x0e1626, accent = 0x39e0ae } = {}) {
+  const group = new THREE.Group(); group.name = 'opponent-low-detail';
+  const body = new THREE.Group(); body.name = 'low-detail-body'; group.add(body);
+  const paintMat = new THREE.MeshStandardMaterial({ color: paint, roughness: 0.72, metalness: 0.08 });
+  const accentMat = new THREE.MeshStandardMaterial({ color: accent, roughness: 0.62, metalness: 0.12 });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x202831, roughness: 0.86 });
+  const addBox = (parent, size, position, material) => {
+    const mesh = new THREE.Mesh(LOD_BOX, material);
+    mesh.scale.set(...size); mesh.position.set(...position); mesh.castShadow = false; mesh.receiveShadow = false;
+    parent.add(mesh); return mesh;
+  };
+  addBox(body, [3.25, 0.18, 1.12], [-0.05, 0.24, 0], darkMat);
+  addBox(body, [2.2, 0.34, 0.78], [-0.08, 0.48, 0], paintMat);
+  addBox(body, [1.65, 0.15, 0.56], [1.45, 0.37, 0], paintMat);
+  addBox(body, [0.22, 0.08, 1.8], [2.25, 0.17, 0], accentMat);
+  addBox(body, [0.2, 0.5, 1.65], [-1.72, 0.56, 0], accentMat);
+  addBox(body, [0.58, 0.24, 0.48], [0.22, 0.76, 0], darkMat);
+  const drsFlap = new THREE.Group(); drsFlap.position.set(-1.82, 0.84, 0); body.add(drsFlap);
+  addBox(drsFlap, [0.09, 0.055, 1.32], [0, 0, 0], paintMat);
+  const wheels = [];
+  for (const x of [1.35, -1.22]) for (const z of [-0.78, 0.78]) {
+    const pivot = new THREE.Group(); pivot.position.set(x, 0.32, z); group.add(pivot);
+    const spin = new THREE.Group(); pivot.add(spin);
+    spin.add(new THREE.Mesh(LOD_TYRE, LOD_TYRE_MATERIAL));
+    wheels.push({ pivot, spin, front: x > 0 });
+  }
+  return { group, body, wheels, driver: [], drsFlap, mirrors: [], cockpitSides: [] };
+}
+const cars = [
+  { model: buildCar(), lowModel: buildOpponentProxy({ paint: 0x0e1626, accent: 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
+  ...DEFAULT_GRID.map((spec, i) => ({
+    model: buildCar({ paint: spec.color, accent: spec.accent, helmet: spec.accent, index: i + 1 }),
+    lowModel: buildOpponentProxy({ paint: spec.color, accent: spec.accent }),
+    wheelAngle: [0, 0, 0, 0], lowActive: false
+  }))
+].map(item => { scene.add(item.model.group, item.lowModel.group); item.lowModel.group.visible = false; return item; });
 // skins[i]: the livery entry i is drawn in (entry 0 is yours). Taking a grid slot puts you
 // in the car there, so the two entries swap liveries: you drive on in its colours and your
 // old car carries on with the AI. Reset puts you back in the navy car.
@@ -752,6 +805,13 @@ function wearSkins(list) {
   model?.driver.forEach(m => { m.visible = true; }); // the cockpit view hides your own driver
   model?.cockpitSides?.forEach(m => { m.visible = true; }); // and the Driver view the cockpit rim
   skins.splice(0, skins.length, ...list);
+  cars.forEach((item, i) => {
+    const isPlayerLivery = i === skins[0];
+    item.lowActive = false;
+    for (const candidate of [item.model, item.lowModel]) candidate.group.traverse(object => {
+      if (object.isMesh) { object.castShadow = isPlayerLivery; object.receiveShadow = isPlayerLivery; }
+    });
+  });
   model = cars[skins[0]].model;
   // The mirrors leave out your own rear wheels, so they show the track behind instead.
   const rearWheels = model.wheels.filter(w => !w.front).map(w => w.pivot);
@@ -840,8 +900,16 @@ const lean = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
 function placeScene(dt) {
   const c = sim.car, g = model.group, mode = CAMERAS[camIndex];
   sim.entries.forEach((e, i) => {
-    const carModel = cars[skins[i]];
-    if (carModel.model.group.visible) poseCar(carModel.model, e.car, carModel.wheelAngle, dt);
+    const carItem = cars[skins[i]];
+    if (!e.player) {
+      const dx = e.car.x - c.x, dy = e.car.y - c.y, distanceSquared = dx * dx + dy * dy;
+      if (carItem.lowActive ? distanceSquared < 85 * 85 : distanceSquared > 115 * 115) carItem.lowActive = !carItem.lowActive;
+    } else carItem.lowActive = false;
+    const useLowDetail = !e.player && carItem.lowActive;
+    carItem.model.group.visible = !useLowDetail;
+    carItem.lowModel.group.visible = useLowDetail;
+    const visualModel = useLowDetail ? carItem.lowModel : carItem.model;
+    poseCar(visualModel, e.car, carItem.wheelAngle, dt);
   });
   // Shadow maps are costly on scenery-heavy circuits. Keep full-resolution,
   // soft shadows, but refresh the map at 12.5 Hz instead of re-rendering it
@@ -1079,7 +1147,7 @@ function frame(now) {
   }
   requestAnimationFrame(frame);
 }
-$('field').textContent = `Opponents: ${opponents ? 'on' : 'off'}`; $('field').setAttribute('aria-pressed', String(opponents)); $('race-section').hidden = !opponents;
+updateOpponentToggle();
 function updatePauseControlLabels() {
   document.querySelectorAll('#pause-controls [data-original-control]').forEach(button => {
     const original = $(button.dataset.originalControl);
@@ -1121,9 +1189,13 @@ function launchFromMenu() {
   const selectedTrack = $('menu-track-select').value;
   if (selectedTrack) params.set('track', selectedTrack); else params.delete('track');
   const mode = $('menu-session-type').value;
-  params.delete('race'); params.delete('practice');
+  params.delete('race'); params.delete('practice'); params.delete('opponents');
   if (mode === 'practice') params.set('practice', '1');
-  else if (selectedTrack) params.set('race', '1');
+  else {
+    if (selectedTrack) params.set('race', '1');
+    const count = Math.max(1, Math.min(DEFAULT_GRID.length, Number($('menu-opponents').value) || DEFAULT_GRID.length));
+    params.set('opponents', String(count));
+  }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
   const quality = $('menu-quality').value === 'performance' ? 'performance' : 'high';
@@ -1139,6 +1211,9 @@ function launchFromMenu() {
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
+$('menu-opponents').value = String(selectedOpponentCount);
+$('menu-opponents').disabled = $('menu-session-type').value === 'practice';
+$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice'; });
 $('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
 $('menu-quality').value = qualityMode;
 $('start-session').addEventListener('click', launchFromMenu);
