@@ -119,10 +119,10 @@ body.session-live main{height:100vh}
 </head>
 <body>
 
-<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 120–240 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
+<header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 120 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
 <script>/* Until the module fills the picker, show the circuit being loaded (name saved by its onchange), not the stadium. */
 (k => { if (k) { const o = document.querySelector('#track-select option'); o.value = k; o.textContent = sessionStorage.getItem('track-name:' + k) || 'Loading ' + k + '…'; } })(new URLSearchParams(location.search).get('track'));</script>
-<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 120–240 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
+<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 120 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
 <div id="pause-state" role="status"></div><div class="label">Speed · Gear <strong id="gear" aria-label="Selected gear">1</strong></div><div><span class="speed" id="speed">0</span> <span class="unit" id="speed-unit">km/h</span></div>
 <div class="pedals"><meter id="in-throttle" min="0" max="1" value="0" aria-label="Throttle command"></meter><meter id="in-brake" min="0" max="1" value="0" aria-label="Brake command"></meter></div><div class="label">Throttle / brake · <span id="input-source">keyboard</span></div>
 <div class="section"><div class="stats"><div><div class="label">Last lap</div><div class="number" id="last-lap">–:––.–––</div></div><div><div class="label">Best lap</div><div class="number" id="best-lap">–:––.–––</div></div></div><div class="sectors" id="sectors"></div></div>
@@ -150,7 +150,7 @@ body.session-live main{height:100vh}
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
-      <div class="menu-field"><label for="menu-quality">Graphics</label><select id="menu-quality"><option value="performance">Performance · target 30 FPS</option><option value="high">High detail</option></select></div>
+      <div class="menu-field"><label for="menu-quality">Graphics</label><select id="menu-quality"><option value="high">High detail · optimised</option><option value="performance">Performance · extra headroom</option></select></div>
     </div>
     <div class="overlay-actions">
       <button id="start-session" class="overlay-btn primary" type="button">START SESSION →</button>
@@ -447,8 +447,9 @@ const halfStraight = 220, radius = 90, roadWidth = 15;
 // without it, the stadium test track hosts the race against the AI field.
 const pageQuery = new URLSearchParams(location.search);
 const circuitKey = Object.hasOwn(CIRCUITS, pageQuery.get('track')) ? pageQuery.get('track') : null;
-const qualityMode = pageQuery.get('quality') === 'high' ? 'high' : 'performance';
-let performanceScale = qualityMode === 'high' ? 1.5 : 0.9, lowFpsSamples = 0;
+const qualityMode = pageQuery.get('quality') === 'performance' ? 'performance' : 'high';
+const maxRenderScale = qualityMode === 'high' ? 2 : 1.2, minRenderScale = qualityMode === 'high' ? 1.5 : 0.85;
+let performanceScale = maxRenderScale, lowFpsSamples = 0;
 const trackDisplayName = circuitKey ? CIRCUITS[circuitKey].name : 'Stadium test track';
 setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Loading ${trackDisplayName}`, 'Downloading circuit data', 8);
 const scenery = circuitKey && Object.hasOwn(SCENERY_STYLE, circuitKey) ? await loadScenery(circuitKey) : undefined;
@@ -517,7 +518,7 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
-    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: qualityMode === 'high' ? 1 / 240 : 1 / 120, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
+    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: pageQuery.get('physics') === '240' ? 1 / 240 : 1 / 120, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
   wearSkins(cars.map((_, i) => i));
@@ -646,7 +647,7 @@ await nextPaint();
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: qualityMode === 'high', alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-renderer.shadowMap.enabled = qualityMode === 'high'; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = qualityMode === 'high';
+renderer.shadowMap.enabled = qualityMode === 'high'; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
 const scene = new THREE.Scene();
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
@@ -655,7 +656,7 @@ const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 4000);
 const hemi = new THREE.HemisphereLight(0xd6e8ff, 0x4a5a32, 0.7);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
-sun.castShadow = qualityMode === 'high'; sun.shadow.mapSize.set(1024, 1024);
+sun.castShadow = qualityMode === 'high'; sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 140 });
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
 scene.add(sun, sun.target);
@@ -700,7 +701,7 @@ function fadeTime() {
   if (!fadeFrom) return;
   const b = Math.min(1, (performance.now() - fadeStart) / 1000 / TIME_BLEND), to = TIMES[timeOfDay];
   applyTime(b < 1 ? lerpTime(fadeFrom, to, b * b * (3 - 2 * b)) : to);
-  if (b >= 1) fadeFrom = null;
+  if (b >= 1) { fadeFrom = null; lastShadowUpdate = -Infinity; }
 }
 function cycleTime() {
   if (!skyDome) return;
@@ -710,7 +711,8 @@ function cycleTime() {
 }
 $('daytime').hidden = !skyDome; $('daytime').onclick = cycleTime;
 if (skyDome) { applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`; }
-function updateChevrons() {
+let lastChevronPlanAt = -Infinity;
+function updateChevrons(now = performance.now()) {
   if (chev) chev.mode(lineMode);
   if (!lineMode) return;
   const me = sim.entries.find(e => e.player) ?? sim.entries[0], drive = me.drive ?? sim.drive, car = me.car;
@@ -718,9 +720,11 @@ function updateChevrons() {
     if (chev) { scene.remove(chev.mesh); chev.mesh.geometry.dispose(); chev.mesh.material.dispose(); }
     const c = car.config, a = drive.brakeDecel(c, 0), b = drive.brakeDecel(c, 1) - a;
     chev = buildChevrons(track, s => drive.planSpeed(car, s), (v, vt) => Math.log((a + b * v * v) / (a + b * vt * vt)) / (2 * b));
-    chevDrive = drive; chev.mode(lineMode); scene.add(chev.mesh);
+    chevDrive = drive; chev.mode(lineMode); scene.add(chev.mesh); lastChevronPlanAt = -Infinity;
   }
-  chev.update(track.progress(car.x, car.y), car.telemetry.speed);
+  const progress = track.progress(car.x, car.y);
+  if (now - lastChevronPlanAt >= 120) { chev.update(progress, car.telemetry.speed); lastChevronPlanAt = now; }
+  else chev.uniforms.carS.value = progress;
 }
 // Photo-real CC BY model (models/CREDITS.md): every car is the 2026 RB22 (rb22.mjs) in its own
 // colours with our sponsors, each car with a different title sponsor. ?car=procedural, or a
@@ -817,6 +821,7 @@ function applyPerformanceScale() {
 }
 new ResizeObserver(resize).observe(canvas);
 const forward = new THREE.Vector3(), chase = new THREE.Vector3(), look = new THREE.Vector3();
+let lastShadowUpdate = -Infinity;
 // Cockpit view: local +x forward -> camera -z, pitched 4° down toward the road.
 const head = { x: 0, z: 0, yaw: 0 };
 const eyeTilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(-4 * Math.PI / 180, -Math.PI / 2, 0, 'YXZ'));
@@ -834,8 +839,17 @@ const ONBOARD = { Cockpit: { dx: 0, dy: 0, tilt: eyeTilt, fov: 72 },
 const lean = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
 function placeScene(dt) {
   const c = sim.car, g = model.group, mode = CAMERAS[camIndex];
-  sim.entries.forEach((e, i) => poseCar(cars[skins[i]].model, e.car, cars[skins[i]].wheelAngle, dt));
-  sun.position.copy(g.position).addScaledVector(sunDir, SUN_DISTANCE); sun.target.position.copy(g.position);
+  sim.entries.forEach((e, i) => {
+    const carModel = cars[skins[i]];
+    if (carModel.model.group.visible) poseCar(carModel.model, e.car, carModel.wheelAngle, dt);
+  });
+  // Shadow maps are costly on scenery-heavy circuits. Keep full-resolution,
+  // soft shadows, but refresh the map at 12.5 Hz instead of re-rendering it
+  // every display frame. The shadow camera and sunlight anchor move together.
+  if (renderer.shadowMap.enabled && performance.now() - lastShadowUpdate >= 80) {
+    sun.position.copy(g.position).addScaledVector(sunDir, SUN_DISTANCE); sun.target.position.copy(g.position);
+    renderer.shadowMap.needsUpdate = true; lastShadowUpdate = performance.now();
+  }
   forward.set(Math.cos(c.heading), 0, -Math.sin(c.heading));
   // The helmet stays in the T-cam shot, below and ahead of the lens.
   model.driver.forEach(m => { m.visible = overview || !(mode === 'Cockpit' || mode === 'Driver'); });
@@ -915,12 +929,10 @@ function render(dt = 0, now = performance.now()) {
   if (now - fpsWindowStart >= 1000) {
     measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart));
     renderedFrames = 0; fpsWindowStart = now;
-    if (qualityMode === 'performance') {
-      if (measuredFps < 28 && performanceScale > 0.55) {
-        lowFpsSamples++;
-        if (lowFpsSamples >= 2) { performanceScale = Math.max(0.55, performanceScale - 0.12); applyPerformanceScale(); lowFpsSamples = 0; }
-      } else lowFpsSamples = 0;
-    }
+    if (measuredFps < 30 && performanceScale > minRenderScale) {
+      lowFpsSamples++;
+      if (lowFpsSamples >= 2) { performanceScale = Math.max(minRenderScale, performanceScale - 0.1); applyPerformanceScale(); lowFpsSamples = 0; }
+    } else lowFpsSamples = 0;
   }
   if (now - lastHudUpdate < 100) return;
   lastHudUpdate = now;
@@ -1061,7 +1073,7 @@ function frame(now) {
   rumbleLevels = paused ? { strong: 0, weak: 0, left: 0, right: 0 } : rumbleModel.update(dt, sim.car, command);
   rumblePlayer.play([...(navigator.getGamepads?.() ?? [])].filter(p => p?.connected), rumbleLevels, now);
   previousTime = now;
-  if (sessionStarted && !paused && now - lastRenderAt >= 1000 / 30) {
+  if (sessionStarted && !paused) {
     const visualDt = lastRenderAt ? Math.min((now - lastRenderAt) / 1000, 0.1) : dt;
     render(visualDt, now); lastRenderAt = now;
   }
@@ -1114,7 +1126,7 @@ function launchFromMenu() {
   else if (selectedTrack) params.set('race', '1');
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
-  const quality = $('menu-quality').value === 'high' ? 'high' : 'performance';
+  const quality = $('menu-quality').value === 'performance' ? 'performance' : 'high';
   if (quality === 'high') params.set('quality', 'high'); else params.delete('quality');
   const next = params.toString(), current = new URLSearchParams(location.search).toString();
   if (next !== current) {
