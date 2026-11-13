@@ -54,6 +54,60 @@ header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,
 @media(max-width:760px){.profile-trigger{padding:5px 7px;gap:5px}.profile-trigger .profile-trigger-name{max-width:66px}.profile-dialog{padding:20px}}
 
 #standings .driver-standing-avatar{width:12px;height:12px;border-radius:50%;object-fit:cover;display:block;border:1px solid #6fffc3}
+
+/* Performance-first presentation and simple race overlays. */
+body{overflow:hidden}
+.overlay-screen{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 50% 12%,#254b59 0,#111e2b 42%,#070b11 100%);color:#eef8f5}
+.overlay-card{width:min(620px,100%);max-height:min(92vh,900px);overflow:auto;padding:clamp(22px,4vw,38px);border:1px solid #ffffff24;border-radius:22px;background:linear-gradient(145deg,#111f2cf2,#09131df5);box-shadow:0 28px 100px #000b;text-shadow:none}
+.overlay-kicker{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#6fffc3;font-weight:850}
+.overlay-card h1{margin:9px 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.02;letter-spacing:-.04em}
+.overlay-copy{margin:0 0 24px;color:#9fb2c1;font-size:13px;line-height:1.6}
+.loading-progress{height:8px;margin:23px 0 10px;border-radius:20px;overflow:hidden;background:#ffffff17}
+.loading-progress span{display:block;width:4%;height:100%;border-radius:20px;background:linear-gradient(90deg,#39d6a1,#70c9ff);box-shadow:0 0 18px #6fffc377;transition:width .35s ease}
+.loading-foot{display:flex;justify-content:space-between;gap:12px;color:#8095a5;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.loading-orbit{width:38px;height:38px;margin:0 0 20px;border:3px solid #ffffff20;border-top-color:#6fffc3;border-radius:50%;animation:f1-spin .8s linear infinite}
+@keyframes f1-spin{to{transform:rotate(360deg)}}
+.menu-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:20px 0}
+.menu-field{display:grid;gap:7px;min-width:0}
+.menu-field label{color:#96aabd;font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:750}
+.menu-field select,.menu-field input{width:100%;min-width:0;min-height:45px;padding:10px 12px;border:1px solid #ffffff27;border-radius:10px;background:#0a1622;color:#eef8f5;font:inherit}
+.overlay-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.overlay-btn{min-height:44px;padding:11px 17px;border:1px solid #ffffff27;border-radius:10px;background:#172b3b;color:#eaf5f1;font-weight:750}
+.overlay-btn.primary{background:linear-gradient(100deg,#6fffc3,#8de9ff);border-color:transparent;color:#07121a}
+.overlay-btn:hover{border-color:#6fffc3}
+.overlay-btn.primary:hover{filter:brightness(1.06)}
+.menu-hint{margin-top:18px;color:#8298a9;font-size:11px;line-height:1.7}
+#main-menu .overlay-card{width:min(680px,100%)}
+#pause-menu .overlay-card{width:min(760px,100%)}
+.pause-top{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.pause-top h1{margin:5px 0 0}
+.pause-actions{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0 24px}
+.pause-section-title{margin:22px 0 10px;color:#8fa5b6;font-size:10px;text-transform:uppercase;letter-spacing:.16em}
+.pause-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pause-controls button{min-height:42px;padding:9px 10px;text-align:left;font-size:11px;background:#132433}
+#mini-hud{position:fixed;z-index:50;top:14px;right:14px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #ffffff25;border-radius:13px;background:#08131dd9;box-shadow:0 8px 32px #0008;backdrop-filter:blur(12px);color:#eef8f5;text-shadow:none}
+#mini-hud .mini-stat{display:grid;gap:2px;min-width:42px}
+#mini-hud strong{font-size:18px;line-height:1;font-variant-numeric:tabular-nums}
+#mini-hud small{color:#8fa5b6;font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+#mini-hud #mini-speed{font-size:23px;color:#6fffc3}
+#mini-hud #mini-fps{font-size:12px;color:#9ab4c4}
+#pause-open{min-height:36px;padding:8px 12px;background:#1a3545;border-color:#6fffc366;font-size:11px;font-weight:800}
+#loading-screen[hidden],#main-menu[hidden],#pause-menu[hidden],#mini-hud[hidden]{display:none!important}
+body.session-live>header{display:none!important}
+body.session-live main aside,body.session-live main .tag,body.session-live #timing,body.session-live #hud-left{display:none!important}
+body.session-live main{height:100vh}
+#driver-profile-modal{z-index:240}
+@media(max-width:620px){
+ .menu-field-grid{grid-template-columns:1fr}
+ .pause-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #mini-hud{top:8px;right:8px;gap:6px;padding:6px 8px}
+ #mini-hud .mini-stat{min-width:34px}
+ #mini-hud strong{font-size:15px}
+ #mini-hud #mini-speed{font-size:19px}
+ .overlay-screen{padding:10px}
+ .overlay-card{padding:22px 18px}
+}
+
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
@@ -77,6 +131,68 @@ header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,
 <div class="section" id="tyre-section"><div class="label">Tyres · tread temp · wear</div><div class="wheels" id="wheels"></div></div>
 <p class="note"><kbd>H</kbd> hides this panel · <a href="https://github.com/AgentiLoop/F1#controls" target="_blank" rel="noopener">controls &amp; physics notes</a></p>
 </aside></main>
+<div id="loading-screen" class="overlay-screen" role="status" aria-live="polite">
+  <section class="overlay-card">
+    <div class="loading-orbit" aria-hidden="true"></div>
+    <div class="overlay-kicker" id="loading-kicker">GAME INITIALISATION</div>
+    <h1 id="loading-title">Starting AgentiLoop Racing</h1>
+    <p class="overlay-copy" id="loading-detail">Preparing the simulator, car and circuit.</p>
+    <div class="loading-progress"><span id="loading-progress-bar"></span></div>
+    <div class="loading-foot"><span id="loading-step">Preparing graphics</span><span id="loading-percent">0%</span></div>
+  </section>
+</div>
+<div id="main-menu" class="overlay-screen" hidden>
+  <section class="overlay-card">
+    <div class="overlay-kicker">AGENTILOOP · FORMULA RACING</div>
+    <h1>Choose your race.</h1>
+    <p class="overlay-copy">Pick a circuit and session. Performance mode reduces scenery and rendering load to prioritise smooth racing.</p>
+    <div class="menu-field-grid">
+      <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
+      <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
+      <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
+      <div class="menu-field"><label for="menu-quality">Graphics</label><select id="menu-quality"><option value="performance">Performance · target 30 FPS</option><option value="high">High detail</option></select></div>
+    </div>
+    <div class="overlay-actions">
+      <button id="start-session" class="overlay-btn primary" type="button">START SESSION →</button>
+      <button id="menu-profile" class="overlay-btn" type="button">Driver profile</button>
+    </div>
+    <div class="menu-hint">W / ↑ accelerate · S / ↓ brake · A / D steer · Space pause · C camera · F DRS · I assists</div>
+  </section>
+</div>
+<div id="pause-menu" class="overlay-screen" hidden>
+  <section class="overlay-card">
+    <div class="pause-top"><div><div class="overlay-kicker">SESSION PAUSED</div><h1>Take a breather.</h1></div></div>
+    <div class="pause-actions">
+      <button id="pause-resume" class="overlay-btn primary" type="button">RESUME RACING</button>
+      <button id="pause-restart" class="overlay-btn" type="button">Restart session</button>
+      <button id="pause-back-menu" class="overlay-btn" type="button">Main menu</button>
+    </div>
+    <div class="pause-section-title">Race controls &amp; settings</div>
+    <div id="pause-controls" class="pause-controls">
+      <button type="button" data-original-control="autopilot">Autopilot</button>
+      <button type="button" data-original-control="assist">Assists</button>
+      <button type="button" data-original-control="cockpit">Camera</button>
+      <button type="button" data-original-control="view">Overview</button>
+      <button type="button" data-original-control="sound">Sound</button>
+      <button type="button" data-original-control="field">Opponents</button>
+      <button type="button" data-original-control="reset">Reset car</button>
+      <button type="button" data-original-control="hud">HUD</button>
+      <button type="button" data-original-control="line">Racing line</button>
+      <button type="button" data-original-control="daytime">Time of day</button>
+      <button type="button" data-original-control="units">Units</button>
+      <button type="button" data-original-control="fullscreen">Fullscreen</button>
+      <button type="button" data-original-control="profile-open">Driver profile</button>
+    </div>
+    <div class="menu-hint">Space resumes or pauses · Esc closes this screen · R restarts the session.</div>
+  </section>
+</div>
+<div id="mini-hud" hidden aria-label="Race telemetry">
+  <div class="mini-stat"><strong id="mini-speed">0</strong><small id="mini-unit">km/h</small></div>
+  <div class="mini-stat"><strong id="mini-gear">1</strong><small>Gear</small></div>
+  <div class="mini-stat"><strong id="mini-lap">OUT</strong><small>Lap</small></div>
+  <div class="mini-stat"><strong id="mini-fps">—</strong><small>FPS</small></div>
+  <button id="pause-open" type="button">Ⅱ PAUSE</button>
+</div>
 <div id="driver-profile-modal" class="profile-modal" hidden>
   <div id="profile-backdrop" class="profile-backdrop"></div>
   <section class="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-heading">
@@ -130,7 +246,8 @@ import { VERSION } from './src/version.mjs';
 document.querySelector('.subtitle').textContent += ' · v' + VERSION;
 const $ = id => document.getElementById(id);
 const canvas = $('track');
-let sim, paused = false, overview = false, cockpit = false, previousTime = null, snapCamera = true;
+let sim, paused = true, overview = false, cockpit = false, previousTime = null, snapCamera = true;
+let sessionStarted = false, lastRenderAt = 0, lastHudUpdate = 0, fpsWindowStart = performance.now(), renderedFrames = 0, measuredFps = 0;
 let width = 1, height = 1;
 let driverProfile = { name: 'You', avatarBlob: null, avatarUrl: null };
 let pendingProfilePhoto = undefined;
@@ -317,22 +434,36 @@ document.addEventListener('keydown', event => {
 });
 
 const keys = new Set();
+const nextPaint = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+function setLoadingStage(kicker, title, detail, percent) {
+  $('loading-kicker').textContent = kicker; $('loading-title').textContent = title;
+  $('loading-detail').textContent = detail; $('loading-step').textContent = detail;
+  $('loading-progress-bar').style.width = `${Math.max(0, Math.min(100, percent))}%`;
+  $('loading-percent').textContent = `${Math.round(percent)}%`;
+}
 const halfStraight = 220, radius = 90, roadWidth = 15;
 // ?track=<key> (circuits.mjs) drives a real circuit, as a solo time trial
 // unless ?race (or O) brings in the AI field (pit lane beside the main straight);
 // without it, the stadium test track hosts the race against the AI field.
-const circuitKey = Object.hasOwn(CIRCUITS, new URLSearchParams(location.search).get('track')) ? new URLSearchParams(location.search).get('track') : null;
-// Only this circuit's scenery is downloaded (src/tracks/<key>.json, preloaded from the head).
+const pageQuery = new URLSearchParams(location.search);
+const circuitKey = Object.hasOwn(CIRCUITS, pageQuery.get('track')) ? pageQuery.get('track') : null;
+const qualityMode = pageQuery.get('quality') === 'high' ? 'high' : 'performance';
+const trackDisplayName = circuitKey ? CIRCUITS[circuitKey].name : 'Stadium test track';
+setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Loading ${trackDisplayName}`, 'Downloading circuit data', 8);
 const scenery = circuitKey && Object.hasOwn(SCENERY_STYLE, circuitKey) ? await loadScenery(circuitKey) : undefined;
+setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Building ${trackDisplayName}`, 'Calculating the racing surface', 24);
+await nextPaint();
 // Circuit picker: reloads with ?track=<key> (stadium = no key), keeping other options.
 $('track-select').innerHTML = `<option value="">Stadium test track · race</option>${Object.entries(CIRCUITS).map(([k, c]) => `<option value="${k}">${c.name}</option>`).join('')}`;
 $('track-select').value = circuitKey ?? '';
 $('track-select').onchange = e => { const q = new URLSearchParams(location.search); if (e.target.value) { q.set('track', e.target.value); sessionStorage.setItem('track-name:' + e.target.value, e.target.selectedOptions[0].text); } else q.delete('track'); location.search = q.toString(); };
 // The real land cover beside the road sets its surface: gravel traps, grass, paved run-off.
 const track = circuitKey ? createCircuitTrack({ ...CIRCUITS[circuitKey], pits: PITS[circuitKey], cover: scenery?.landcover ? landcoverField(scenery.landcover) : null }) : createStadiumTrack({ halfStraight, radius, roadWidth });
+setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Preparing ${trackDisplayName}`, 'Setting up the racing surface and physics', 38);
+await nextPaint();
 const { surfaceAt, barrierAt } = track;
 const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined);
-let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = !circuitKey || new URLSearchParams(location.search).has('race');
+let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
 const driver = createDriverInput();
 // Sound: the AudioContext is created on the first key press or click (autoplay policy).
 const soundModel = createSoundModel(DEFAULT_CAR);
@@ -431,7 +562,7 @@ function changeCamera() {
   $('cockpit').setAttribute('aria-pressed', String(cockpit));
 }
 $('cockpit').onclick = changeCamera;
-$('pause').onclick = () => pause(!paused);
+$('pause').onclick = () => { if (sessionStarted) (paused ? hidePauseMenu() : showPauseMenu()); };
 $('reset').onclick = reset;
 $('view').onclick = changeView;
 $('autopilot').onclick = toggleAutopilot;
@@ -453,7 +584,7 @@ $('units').onclick = () => {
   mph = !mph;
   const unit = mph ? 'mph' : 'km/h';
   $('units').textContent = `Units: ${unit}`;
-  document.querySelectorAll('#speed-unit, #hud-speed .unit').forEach(el => el.textContent = unit);
+  document.querySelectorAll('#speed-unit, #hud-speed .unit, #mini-unit').forEach(el => el.textContent = unit);
 };
 const root = document.documentElement, fsElement = () => document.fullscreenElement ?? document.webkitFullscreenElement;
 if (!(root.requestFullscreen ?? root.webkitRequestFullscreen)) $('fullscreen').hidden = true;
@@ -479,7 +610,8 @@ window.addEventListener('keydown', e => {
   if ([...drivingKeys,'Space','KeyR','KeyV','KeyP','KeyC','KeyM','KeyO','KeyB','KeyH','KeyL','KeyT','KeyZ','KeyX','KeyG','KeyI'].includes(e.code)) e.preventDefault();
   if (e.repeat) return;
   if (e.code !== 'KeyM') startAudio();
-  if (e.code === 'Space') pause(!paused);
+  if (e.code === 'Escape' && sessionStarted) { if (!paused) showPauseMenu(); else hidePauseMenu(); }
+  else if (e.code === 'Space' && sessionStarted) { if (paused) hidePauseMenu(); else showPauseMenu(); }
   else if (e.code === 'KeyR') reset();
   else if (e.code === 'KeyV') changeView();
   else if (e.code === 'KeyP') toggleAutopilot();
@@ -497,8 +629,8 @@ window.addEventListener('keydown', e => {
   else if (!paused) keys.add(e.code);
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
-window.addEventListener('blur', () => pause(true));
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(true); });
+window.addEventListener('blur', () => { if (sessionStarted && !paused) showPauseMenu(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && sessionStarted && !paused) showPauseMenu(); });
 for (let k = 1; k <= 3; k++) {
   const box = document.createElement('div'); box.className = 'sector'; box.id = `sector-${k}`;
   box.innerHTML = `<div class="label">S${k}</div><span>–</span>`; $('sectors').append(box);
@@ -508,10 +640,12 @@ for (const name of ['FL', 'FR', 'RL', 'RR']) {
   box.innerHTML = `${name}<span id="temp-${name}" aria-label="${name} tread temperature, thermal grip">70° · 91%</span><meter id="grip-${name}" min="0" max="1" value="0" aria-label="${name} tire utilization"></meter><div id="wear-${name}" aria-label="${name} tread wear and wear grip">Wear 0.0% · 100%</div>`;
   $('wheels').append(box);
 }
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Building ${trackDisplayName}`, 'Rendering the circuit and roadside scenery', 45);
+await nextPaint();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: qualityMode === 'high', alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = qualityMode === 'high'; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = qualityMode === 'high';
 const scene = new THREE.Scene();
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
@@ -520,12 +654,12 @@ const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 4000);
 const hemi = new THREE.HemisphereLight(0xd6e8ff, 0x4a5a32, 0.7);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
-sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+sun.castShadow = qualityMode === 'high'; sun.shadow.mapSize.set(1024, 1024);
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 140 });
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
 scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
-const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
+const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
 // Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
@@ -591,6 +725,8 @@ function updateChevrons() {
 // colours with our sponsors, each car with a different title sponsor. ?car=procedural, or a
 // model that fails to load, uses the built-in car.
 let carTemplate = null;
+setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', 'Loading the F1 car', 'Loading the car model and cockpit details', 78);
+await nextPaint();
 if (new URLSearchParams(location.search).get('car') !== 'procedural') {
   try { carTemplate = await loadRB22Template(); }
   catch (err) { console.warn('rb22 car model failed to load', err); }
@@ -671,7 +807,7 @@ function poseCar(m, c, angles, dt) {
 function resize() {
   const bounds = canvas.getBoundingClientRect();
   width = Math.max(bounds.width, 1); height = Math.max(bounds.height, 1);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(width, height, false);
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, qualityMode === 'high' ? 1.5 : 1)); renderer.setSize(width, height, false);
   camera.aspect = width / height; camera.updateProjectionMatrix();
 }
 new ResizeObserver(resize).observe(canvas);
@@ -745,7 +881,7 @@ const outline = Array.from({ length: Math.ceil(track.length / 2) }, (_, i) => tr
 const mapBounds = outline.reduce((b, [x, y]) => ({ minX: Math.min(b.minX, x), maxX: Math.max(b.maxX, x), minY: Math.min(b.minY, y), maxY: Math.max(b.maxY, y) }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
 const minimap = $('minimap'), map2d = minimap.getContext('2d');
 function drawMinimap() {
-  const dpr = Math.min(devicePixelRatio, 2), w = minimap.clientWidth, h = minimap.clientHeight;
+  const dpr = Math.min(devicePixelRatio || 1, qualityMode === 'high' ? 1.25 : 1), w = minimap.clientWidth, h = minimap.clientHeight;
   if (minimap.width !== Math.round(w * dpr) || minimap.height !== Math.round(h * dpr)) { minimap.width = Math.round(w * dpr); minimap.height = Math.round(h * dpr); }
   const pad = 12, scale = Math.min((w - 2 * pad) / (mapBounds.maxX - mapBounds.minX), (h - 2 * pad) / (mapBounds.maxY - mapBounds.minY));
   const ox = (w - (mapBounds.maxX - mapBounds.minX) * scale) / 2, oy = (h - (mapBounds.maxY - mapBounds.minY) * scale) / 2;
@@ -767,9 +903,14 @@ function drawMinimap() {
     map2d.lineWidth = 1; map2d.strokeStyle = e.player ? '#ffffff' : '#000000a0'; map2d.stroke();
   }
 }
-function render(dt = 0) {
+function render(dt = 0, now = performance.now()) {
   const c = sim.car;
-  fadeTime(); updateChevrons(); placeScene(dt); drawMinimap(); world.userData.update?.(dt);
+  fadeTime(); updateChevrons(); placeScene(dt); world.userData.update?.(dt);
+  renderedFrames++;
+  if (now - fpsWindowStart >= 1000) { measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart)); renderedFrames = 0; fpsWindowStart = now; }
+  if (now - lastHudUpdate < 100) return;
+  lastHudUpdate = now;
+  drawMinimap();
   $('speed').textContent = $('speed-hud').textContent = Math.round(c.telemetry.speed * (mph ? 2.23694 : 3.6));
   $('gear').textContent = (c.gear < 0 ? 'R' : String(c.gear)) + (c.config.autoShift ? '' : ' M');
   $('long').textContent = `${(c.ax / 9.81).toFixed(2)} g`;
@@ -838,12 +979,17 @@ function render(dt = 0) {
   $('status').textContent = paused ? 'Paused · Space or Resume to continue' : c.gear < 0 ? 'Reverse · hold the brake to back up · W / RT brakes, then goes forward' : startNote ? startNote : flagNote ? flagNote : pitNote ? pitNote : impact ? `Wall impact · ${Math.round(impact.speed * 3.6)} km/h into the barrier · R to reset` : contact ? `Contact · ${Math.round(contact.speed * 3.6)} km/h closing speed` : !['asphalt', 'pit'].includes(surface) ? `On the ${surface} · reduced grip · R to reset` : autopilot ? 'Autopilot · P to take control' : c.telemetry.speed < 0.5 ? 'Ready · W or ↑ to accelerate' : `${circuitKey ? track.name : 'Test circuit'} · ${driver.source} input`;
   $('input-source').textContent = autopilot ? 'autopilot' : driver.source;
   $('in-throttle').value = command.throttle ?? 0; $('in-brake').value = command.brake ?? 0;
+  $('mini-speed').textContent = Math.round(c.telemetry.speed * (mph ? 2.23694 : 3.6));
+  $('mini-unit').textContent = mph ? 'mph' : 'km/h';
+  $('mini-gear').textContent = c.gear < 0 ? 'R' : String(c.gear);
+  $('mini-lap').textContent = ts.started ? `L${ts.lap}` : 'OUT';
+  $('mini-fps').textContent = measuredFps ? String(measuredFps) : '—';
 }
 function frame(now) {
   const dt = previousTime !== null && !paused ? Math.min((now - previousTime) / 1000, 0.1) : 0;
   gamepadTakeover();
   // Gamepad buttons: Y pause / resume, Menu (Start) HUD, B camera, X full screen, A assist, Back (View) reset.
-  if (gamepadPressed(3)) pause(!paused);
+  if (gamepadPressed(3) && sessionStarted) (paused ? hidePauseMenu() : showPauseMenu());
   if (gamepadPressed(9)) toggleHud();
   if (gamepadPressed(1)) changeCamera();
   if (gamepadPressed(2) && !$('fullscreen').hidden) $('fullscreen').click();
@@ -900,11 +1046,98 @@ function frame(now) {
   }
   rumbleLevels = paused ? { strong: 0, weak: 0, left: 0, right: 0 } : rumbleModel.update(dt, sim.car, command);
   rumblePlayer.play([...(navigator.getGamepads?.() ?? [])].filter(p => p?.connected), rumbleLevels, now);
-  previousTime = now; render(dt); requestAnimationFrame(frame);
+  previousTime = now;
+  if (sessionStarted && now - lastRenderAt >= 1000 / 30) {
+    const visualDt = lastRenderAt ? Math.min((now - lastRenderAt) / 1000, 0.1) : dt;
+    render(visualDt, now); lastRenderAt = now;
+  }
+  requestAnimationFrame(frame);
 }
 $('field').textContent = `Opponents: ${opponents ? 'on' : 'off'}`; $('field').setAttribute('aria-pressed', String(opponents)); $('race-section').hidden = !opponents;
+function updatePauseControlLabels() {
+  document.querySelectorAll('#pause-controls [data-original-control]').forEach(button => {
+    const original = $(button.dataset.originalControl);
+    if (!original) return;
+    button.textContent = button.dataset.originalControl === 'profile-open' ? 'Driver profile' : original.textContent;
+    button.hidden = !!original.hidden;
+  });
+}
+function startSessionNow() {
+  sessionStarted = true;
+  $('main-menu').hidden = true; $('pause-menu').hidden = true; $('mini-hud').hidden = false;
+  document.body.classList.add('session-live'); document.body.classList.remove('race-paused');
+  reset(); pause(false);
+}
+function showMainMenu() {
+  sessionStarted = false; pause(true);
+  $('main-menu').hidden = false; $('pause-menu').hidden = true; $('mini-hud').hidden = true;
+  document.body.classList.remove('session-live', 'race-paused');
+}
+function showPauseMenu() {
+  if (!sessionStarted) return;
+  pause(true); updatePauseControlLabels();
+  $('pause-menu').hidden = false; document.body.classList.add('race-paused');
+}
+function hidePauseMenu() {
+  if (!sessionStarted) return;
+  $('pause-menu').hidden = true; document.body.classList.remove('race-paused');
+  pause(false);
+}
+function openMainMenuFromPause() {
+  if (!sessionStarted) return;
+  sessionStarted = false; pause(true);
+  $('pause-menu').hidden = true; $('mini-hud').hidden = true; $('main-menu').hidden = false;
+  document.body.classList.remove('session-live', 'race-paused');
+}
+function launchFromMenu() {
+  const params = new URLSearchParams(location.search);
+  const selectedTrack = $('menu-track-select').value;
+  if (selectedTrack) params.set('track', selectedTrack); else params.delete('track');
+  const mode = $('menu-session-type').value;
+  params.delete('race'); params.delete('practice');
+  if (mode === 'practice') params.set('practice', '1');
+  else if (selectedTrack) params.set('race', '1');
+  const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
+  params.set('laps', String(laps));
+  const quality = $('menu-quality').value === 'high' ? 'high' : 'performance';
+  if (quality === 'high') params.set('quality', 'high'); else params.delete('quality');
+  const next = params.toString(), current = new URLSearchParams(location.search).toString();
+  if (next !== current) {
+    try { sessionStorage.setItem('f1-menu-autostart', '1'); } catch (error) {}
+    location.search = next;
+    return;
+  }
+  startSessionNow();
+}
+$('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
+$('menu-track-select').value = circuitKey ?? '';
+$('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
+$('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
+$('menu-quality').value = qualityMode;
+$('start-session').addEventListener('click', launchFromMenu);
+$('menu-profile').addEventListener('click', () => $('profile-open').click());
+$('pause-open').addEventListener('click', showPauseMenu);
+$('pause-resume').addEventListener('click', hidePauseMenu);
+$('pause-restart').addEventListener('click', () => { reset(); hidePauseMenu(); });
+$('pause-back-menu').addEventListener('click', openMainMenuFromPause);
+document.querySelectorAll('#pause-controls [data-original-control]').forEach(button => {
+  button.addEventListener('click', () => {
+    const original = $(button.dataset.originalControl);
+    if (!original || original.hidden) return;
+    original.click(); updatePauseControlLabels();
+  });
+});
 await loadDriverProfile();
-reset(); resize(); requestAnimationFrame(frame);
+reset(); pause(true); resize();
+await nextPaint();
+setLoadingStage(circuitKey ? 'TRACK READY' : 'GAME READY', 'Ready to race', 'The simulator and circuit are ready', 100);
+$('loading-screen').hidden = true;
+render(0, performance.now());
+requestAnimationFrame(frame);
+let autoStart = false;
+try { autoStart = sessionStorage.getItem('f1-menu-autostart') === '1'; sessionStorage.removeItem('f1-menu-autostart'); } catch (error) {}
+if (autoStart) startSessionNow(); else showMainMenu();
+// Read-only snapshots for browser smoke tests and telemetry tools.
 // Read-only snapshots for browser smoke tests and telemetry tools.
 window.f1Lab = {
   snapshot: () => ({ car: structuredClone(sim.car), timing: structuredClone(timer.state), paused, overview, cockpit, keys: [...keys], command: { ...command }, inputSource: autopilot ? 'autopilot' : driver.source }),
