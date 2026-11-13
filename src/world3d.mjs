@@ -1368,21 +1368,37 @@ function plantTrees(spots, groundAt, rng, trees = { conifer: 0.45, broadleaf: 0.
   const fringeMat = new THREE.MeshStandardMaterial({ map: leafCardTexture(), vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.9 });
   const kinds = ['conifer', 'broadleaf', 'palm'], weight = kinds.map(k => trees[k] ?? 0), sum = weight.reduce((a, b) => a + b, 0) || 1;
   const kindOf = v => { let acc = 0; for (let k = 0; k < kinds.length; k++) if (v < (acc += weight[k] / sum)) return k; return kinds.length - 1; };
-  return kinds.flatMap((kind, k) => {
-    const list = spots.filter(t => (t[5] ?? kindOf(t[4])) === k);
-    if (!list.length) return [];
-    const body = new THREE.InstancedMesh(treeGeometry(kind), bodyMat, list.length), fringe = kind === 'palm' ? null : new THREE.InstancedMesh(treeFringe(kind), fringeMat, list.length);
+  // Keep the full-detail tree population, but split it into spatially bounded
+  // batches. A single InstancedMesh for an entire multi-kilometre circuit has
+  // one enormous bounding sphere, so Three.js cannot cull trees behind the
+  // camera. Tile-sized batches retain the same geometry and instance count
+  // while allowing the renderer to skip whole areas outside the view frustum.
+  const TILE = 384, byKind = kinds.map(() => new Map());
+  for (const tree of spots) {
+    const kindIndex = tree[5] ?? kindOf(tree[4]), tx = Math.floor(tree[0] / TILE), ty = Math.floor(tree[1] / TILE), key = `${tx},${ty}`;
+    const bins = byKind[kindIndex];
+    if (!bins.has(key)) bins.set(key, { tx, ty, list: [] });
+    bins.get(key).list.push(tree);
+  }
+  const bodyGeometries = kinds.map(treeGeometry), fringeGeometries = kinds.map((kind, i) => kind === 'palm' ? null : treeFringe(kind));
+  return kinds.flatMap((kind, k) => [...byKind[k].entries()].map(([tile, bin]) => {
+    const { list } = bin;
+    const body = new THREE.InstancedMesh(bodyGeometries[k], bodyMat, list.length);
+    const fringe = fringeGeometries[k] ? new THREE.InstancedMesh(fringeGeometries[k], fringeMat, list.length) : null;
     list.forEach(([x, y, sc, rot, v], i) => {
       dummy.position.set(x, groundAt(x, y), -y); dummy.rotation.set(0, rot, 0); dummy.scale.set(sc, sc * (0.85 + v * 0.3), sc);
       dummy.updateMatrix(); body.setMatrixAt(i, dummy.matrix); fringe?.setMatrixAt(i, dummy.matrix);
-      const tint = 0.8 + rng() * 0.35, c = new THREE.Color(tint * (0.95 + rng() * 0.15), tint, tint * (0.85 + rng() * 0.15));
-      body.setColorAt(i, c); fringe?.setColorAt(i, c);
+      const tint = 0.8 + rng() * 0.35, colour = new THREE.Color(tint * (0.95 + rng() * 0.15), tint, tint * (0.85 + rng() * 0.15));
+      body.setColorAt(i, colour); fringe?.setColorAt(i, colour);
     });
-    body.userData = { kind: 'trees', species: kind, real: list.filter(t => t[6]).length };
+    body.instanceMatrix.needsUpdate = true; if (body.instanceColor) body.instanceColor.needsUpdate = true;
+    if (fringe) { fringe.instanceMatrix.needsUpdate = true; if (fringe.instanceColor) fringe.instanceColor.needsUpdate = true; }
+    body.computeBoundingSphere(); fringe?.computeBoundingSphere();
+    body.name = `trees-${kind}-${tile}`; body.userData = { kind: 'trees', species: kind, tile, real: list.filter(t => t[6]).length };
     const meshes = fringe ? [body, fringe] : [body];
     for (const m of meshes) m.castShadow = m.receiveShadow = true;
     return meshes;
-  });
+  }));
 }
 
 // Leaf-card atlas, two cells across on a transparent background: a ragged
