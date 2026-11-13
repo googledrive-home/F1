@@ -20,6 +20,15 @@ test('the player starts behind every opponent and solo starts stay on pole', () 
   }
 });
 
+test('Performance mode supports a stable 120 Hz race timestep', () => {
+  const standard = createRace(track, { grid: [] });
+  const performance = createRace(track, { grid: [], fixedDt: 1 / 120 });
+  assert.equal(standard.fixedDt, FIXED_DT);
+  assert.equal(performance.fixedDt, 1 / 120);
+  assert.equal(performance.advance(1 / 30, { throttle: 0 }, track.surfaceAt, track.barrierAt), 4);
+  assert.throws(() => createRace(track, { fixedDt: 1 / 30 }), /no greater than 1\/60 s/);
+});
+
 test('wake is strongest close behind on the centreline and absent ahead or beside', () => {
   const lead = place(0, 0);
   assert.ok(wakeStrength(lead, place(-RACE_DEFAULTS.wakeMinGap - 0.01, 0)) > 0.99);
