@@ -128,7 +128,7 @@ test('fixed stepping gives identical results across render rates', () => {
 
 test('hitches are bounded and invalid time is rejected', () => {
   const sim = new Simulation();
-  assert.equal(sim.advance(5, { throttle: 1 }), 60);
+  assert.equal(sim.advance(5, { throttle: 1 }), 15);
   near(sim.droppedTime, 4.75);
   assert.throws(() => sim.advance(NaN, {}), RangeError);
   assert.throws(() => step(sim.car, {}, 1), RangeError);

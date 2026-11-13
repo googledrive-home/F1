@@ -89,7 +89,7 @@ export const TIRE_COMPOUNDS = Object.freeze({
   medium: Object.freeze({ grip: 1, wear: 1 }),
   hard: Object.freeze({ grip: 0.985, wear: 0.55 }),
 });
-export const FIXED_DT = 1 / 240;
+export const FIXED_DT = 1 / 60;
 export const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const RPM = 60 / (2 * Math.PI);
 

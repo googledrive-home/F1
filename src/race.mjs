@@ -8,6 +8,9 @@
 import { step, createCar, carMass, fitTires, newErsLap, tireTempGrip, tireWearGrip, TIRE_COMPOUNDS, FIXED_DT, clamp } from './physics.mjs';
 import { createAutopilot, createCircuitAutopilot } from './autopilot.mjs';
 
+// AI path and traffic decisions are recalculated 20 times per second; physics remains 60 Hz.
+const AI_THINK_INTERVAL = 1 / 20;
+
 export const RACE_DEFAULTS = Object.freeze({
   wakeLength: 30, wakeWidth: 1.4, wakeMinGap: 4, towDragLoss: 0.35, dirtyAirLoss: 0.12,
   carRestitution: 0.3, carFriction: 0.4,
@@ -253,7 +256,10 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       // DRS: zones this car may open its flap in, its latest detection gap (s).
       drsArmed: new Set(), drsGap: null,
       // AI variation: lap the form was drawn for, form, pending mistake (covered m), mistake end (s).
-      formLap: null, form: 1, mistakeAt: null, mistakeUntil: -Infinity };
+      formLap: null, form: 1, mistakeAt: null, mistakeUntil: -Infinity,
+      cachedAiCommand: null, nextAiThink: -Infinity,
+      renderPrevious: { x: car.x, y: car.y, heading: car.heading },
+      renderCurrent: { x: car.x, y: car.y, heading: car.heading } };
   });
   // Planned stop lap under the compound rule: 35-65% race distance.
   for (const e of entries) e.stopLap = rule ? clamp(Math.round(laps * (0.35 + 0.3 * rand())), 1, laps - 1) : null;
@@ -766,8 +772,17 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
     }
     for (const e of entries) e.manual = !!(e.player && input);
     const commands = entries.map((e, i) => {
-      let command = e.pit?.phase === 'service' || e.retired ? hold : e.player && input ? input
-        : time < lightsOut + (start ? e.reactionTime : 0) ? hold : recoveryCommand(e, barrierAt) ?? aiCommand(i);
+      let command;
+      if (e.pit?.phase === 'service' || e.retired) command = hold;
+      else if (e.player && input) command = input;
+      else if (time < lightsOut + (start ? e.reactionTime : 0)) command = hold;
+      else {
+        if (time + 1e-9 >= e.nextAiThink) {
+          e.cachedAiCommand = recoveryCommand(e, barrierAt) ?? aiCommand(i, AI_THINK_INTERVAL);
+          e.nextAiThink = time + AI_THINK_INTERVAL;
+        }
+        command = e.cachedAiCommand ?? hold;
+      }
       // Pit limiter: no drive above the speed limit in the pit lane.
       if (command.throttle > 0 && pit && e.car.telemetry.speed > pit.speedLimit && inPitLane(e.car)) command = { ...command, throttle: 0 };
       // DRS: the AI (and the player's autopilot) opens it wherever allowed;
@@ -776,9 +791,12 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       command = { ...command, drs: e.drsAllowed && (!e.manual || command.drs === true) };
       return (e.command = command);
     });
+    // Preserve the two most recent physics poses for smooth display interpolation.
+    for (const e of entries) e.renderPrevious = e.renderCurrent ?? { x: e.car.x, y: e.car.y, heading: e.car.heading };
     entries.forEach((e, i) => step(e.car, commands[i], fixedDt, surfaceAt, barrierAt, groundAt));
     for (let i = 0; i < entries.length; i++)
       for (let j = i + 1; j < entries.length; j++) resolveCarContact(entries[i].car, entries[j].car, o);
+    for (const e of entries) e.renderCurrent = { x: e.car.x, y: e.car.y, heading: e.car.heading };
     time += fixedDt;
     for (const e of entries) {
       const p = track.progress(e.car.x, e.car.y);
@@ -821,7 +839,9 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
 
   return {
     entries, options: o, aiCommand, pit, compoundRule: rule, drsZones, fixedDt,
-    get drsEnabled() { return freeDrs || drsEnabled(); }, inPitLane: car => inPitLane(car),
+    get drsEnabled() { return freeDrs || drsEnabled(); },
+    get interpolationAlpha() { return Math.min(1, Math.max(0, accumulator / fixedDt)); },
+    inPitLane: car => inPitLane(car),
     // Player's pit request: the compound to fit at the next stop (null cancels).
     // On autopilot the car boxes at the next pit entry; driving, stop in the box.
     requestPit(compound) { if (pit) entries[0].pitRequest = compound === null || TIRE_COMPOUNDS[compound] ? compound : entries[0].pitRequest; },

@@ -20,6 +20,17 @@ test('the player starts behind every opponent and solo starts stay on pole', () 
   }
 });
 
+test('race exposes a fractional interpolation phase and consecutive visual poses', () => {
+  const race = createRace(track, { grid: [] });
+  assert.equal(race.interpolationAlpha, 0);
+  race.advance(FIXED_DT / 2, { throttle: 0 }, track.surfaceAt, track.barrierAt);
+  assert.ok(Math.abs(race.interpolationAlpha - 0.5) < 1e-9);
+  race.advance(FIXED_DT / 2, { throttle: 0.5 }, track.surfaceAt, track.barrierAt);
+  assert.equal(race.interpolationAlpha, 0);
+  assert.ok(race.entries[0].renderPrevious);
+  assert.ok(race.entries[0].renderCurrent);
+});
+
 test('race timesteps support the game 60 Hz setting and optional 120 Hz simulation', () => {
   const standard = createRace(track, { grid: [] });
   const game = createRace(track, { grid: [], fixedDt: 1 / 60 });

@@ -271,8 +271,9 @@ export function buildWorld({ halfStraight, radius, roadWidth, boxColors = [] }) 
 // elevation: everything on the ground's height, and terrain with the lake
 // instead of the hill ring and flat field, buildTerrain). scenery
 // (scenery.mjs): the ground's colours, the trees and the sea, if any.
-export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCENERY, quality = 'high' } = {}) {
-  const highQuality = quality === 'high';
+export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCENERY, quality = 'high', qualityScale = 1.25 } = {}) {
+  const highQuality = quality === 'high' || (quality === 'manual' && qualityScale >= 1.6);
+  const balancedQuality = quality === 'balanced' || (quality === 'manual' && qualityScale >= 1 && qualityScale < 1.6);
   const world = new THREE.Group(), half = track.roadWidth / 2, wallAt = track.wallOffset;
   const { x: X, y: Y, s: S, heading: H, kerb } = track.samples, n = X.length;
   // Ground height (circuit.mjs elevation; offsets there are + right, here + left).
@@ -302,7 +303,10 @@ export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCE
   }, size / 8, size / 8);
   // With elevation: terrain shaped around the road and the lake beside it
   // (terrainHeight); otherwise a flat field.
-  const terrainHeight = track.hasElevation ? buildTerrain(world, track, { cx, cy, extent, minX, maxX, minY, maxY }, scenery, highQuality ? {} : { meshStep: 12, edgeStep: 1.5, coarseCell: 40, nearestStride: 10 }) : () => 0;
+  const terrainOptions = highQuality ? {} : balancedQuality
+    ? { meshStep: 8, edgeStep: 1, coarseCell: 32, nearestStride: 7 }
+    : { meshStep: 12, edgeStep: 1.5, coarseCell: 40, nearestStride: 10 };
+  const terrainHeight = track.hasElevation ? buildTerrain(world, track, { cx, cy, extent, minX, maxX, minY, maxY }, scenery, terrainOptions) : () => 0;
   if (!track.hasElevation) {
     const field = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({ map: grass, roughness: 1 }));
     field.rotation.x = -Math.PI / 2; field.position.set(cx, -0.03, -cy); field.receiveShadow = true; world.add(field);
@@ -1026,12 +1030,12 @@ export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCE
   // conifer; broadleaved: broadleaf or palm by the circuit's weights; mixed
   // or not mapped: any kind by them), among the kinds the circuit has. Where OSM maps fewer than MIN_REAL
   // trees, scenery.clusters random clusters of the circuit's kinds are added.
-  const MAX_TREES = highQuality ? 6000 : 1600, MIN_REAL = highQuality ? 200 : 80, real = [];
+  const MAX_TREES = highQuality ? 6000 : balancedQuality ? 3200 : 1600, MIN_REAL = highQuality ? 200 : balancedQuality ? 140 : 80, real = [];
   const kinds = ['conifer', 'broadleaf', 'palm'], weight = kinds.map(k => scenery.trees[k] ?? 0), sum = weight.reduce((a, b) => a + b, 0) || 1;
   const kindOf = v => { let acc = 0; for (let k = 0; k < kinds.length; k++) if (v < (acc += weight[k] / sum)) return k; return kinds.length - 1; };
   const leafKind = (leaf, v) => leaf === 2 && weight[0] ? 0 : leaf === 1 && weight[1] + weight[2] ? (v * (weight[1] + weight[2]) < weight[1] ? 1 : 2) : kindOf(v);
   if (scenery.woods) {
-    const roadDist = terrainHeight.dist ?? ((x, y) => Math.abs(track.offset(x, y))), g = highQuality ? 8 : 16, taken = new Set();
+    const roadDist = terrainHeight.dist ?? ((x, y) => Math.abs(track.offset(x, y))), g = highQuality ? 8 : balancedQuality ? 12 : 16, taken = new Set();
     for (const [leaf, ...flat] of scenery.woods.woods) {
       const rings = flat.map(r => Array.from({ length: r.length / 2 }, (_, i) => [r[2 * i], r[2 * i + 1]]));
       const xs = rings[0].map(p => p[0]), ys = rings[0].map(p => p[1]);
@@ -1041,7 +1045,10 @@ export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCE
         let inWood = false;
         for (const r of rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) if ((r[i][1] > y) !== (r[j][1] > y) && x < (r[j][0] - r[i][0]) * (y - r[i][1]) / (r[j][1] - r[i][1]) + r[i][0]) inWood = !inWood;
         if (!inWood) continue;
-        const d = roadDist(x, y), apart = highQuality ? (d < 150 ? 9 : Math.min(20, 9 + (d - 150) * 11 / 450)) : (d < 150 ? 18 : Math.min(36, 18 + (d - 150) * 18 / 450));
+        const d = roadDist(x, y), apart = highQuality
+          ? (d < 150 ? 9 : Math.min(20, 9 + (d - 150) * 11 / 450))
+          : balancedQuality ? (d < 150 ? 13 : Math.min(27, 13 + (d - 150) * 14 / 450))
+          : (d < 150 ? 18 : Math.min(36, 18 + (d - 150) * 18 / 450));
         if (keep > (g / apart) ** 2 || !clear(x, y)) continue;
         taken.add(cellKey); real.push([x, y, leaf, d]);
       }
@@ -1052,7 +1059,9 @@ export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCE
   }
   const spots = [];
   for (const [x, y, leaf] of real) { const v = rng(); spots.push([x, y, 0.75 + rng() * 0.6, rng() * Math.PI * 2, v, leafKind(leaf, v), true]); }
-  const clusterTarget = highQuality ? scenery.clusters * 3 : Math.min(300, scenery.clusters * 3);
+  const clusterTarget = highQuality ? scenery.clusters * 3 : balancedQuality
+    ? Math.min(900, Math.round(scenery.clusters * 1.8))
+    : Math.min(300, scenery.clusters * 3);
   if (real.length < MIN_REAL) for (let tries = 0; spots.length < clusterTarget && tries < scenery.clusters * 2; tries++) {
     const tx = cx + (rng() - 0.5) * (maxX - minX + 300), ty = cy + (rng() - 0.5) * (maxY - minY + 300), m = 3 + Math.floor(rng() * 9);
     for (let i = 0; i < m; i++) {

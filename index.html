@@ -107,6 +107,10 @@ body.session-live main{height:100vh}
  .overlay-screen{padding:10px}
  .overlay-card{padding:22px 18px}
 }
+#manual-quality-field[hidden]{display:none}
+#menu-quality-slider{min-height:20px;height:24px;padding:0;border:0;background:transparent;accent-color:#6fffc3}
+#manual-quality-value{float:right;color:#6fffc3;font-variant-numeric:tabular-nums}
+#manual-quality-note{margin:0;color:#8298a9;font-size:10px;line-height:1.5}
 
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
@@ -145,13 +149,18 @@ body.session-live main{height:100vh}
   <section class="overlay-card">
     <div class="overlay-kicker">AGENTILOOP · FORMULA RACING</div>
     <h1>Choose your race.</h1>
-    <p class="overlay-copy">Pick a circuit and session. Performance mode reduces scenery and rendering load to prioritise smooth racing.</p>
+    <p class="overlay-copy">Choose the picture quality that suits your device. Balanced and Performance adapt rendering resolution to keep the game responsive.</p>
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
-      <div class="menu-field"><label for="menu-quality">Graphics</label><select id="menu-quality"><option value="high">High detail · optimised</option><option value="performance">Performance · extra headroom</option></select></div>
+      <div class="menu-field"><label for="menu-quality">Graphics quality</label><select id="menu-quality"><option value="high">High graphics</option><option value="balanced" selected>Balanced</option><option value="performance">Performance</option><option value="manual">Manual</option></select></div>
+      <div class="menu-field" id="manual-quality-field" hidden>
+        <label for="menu-quality-slider">Manual quality <output id="manual-quality-value">125%</output></label>
+        <input id="menu-quality-slider" type="range" min="70" max="200" step="5" value="125">
+        <p id="manual-quality-note">Lower values reduce scenery density and render resolution; higher values increase detail.</p>
+      </div>
     </div>
     <div class="overlay-actions">
       <button id="start-session" class="overlay-btn primary" type="button">START SESSION →</button>
@@ -448,9 +457,17 @@ const halfStraight = 220, radius = 90, roadWidth = 15;
 // without it, the stadium test track hosts the race against the AI field.
 const pageQuery = new URLSearchParams(location.search);
 const circuitKey = Object.hasOwn(CIRCUITS, pageQuery.get('track')) ? pageQuery.get('track') : null;
-const qualityMode = pageQuery.get('quality') === 'performance' ? 'performance' : 'high';
-const maxRenderScale = qualityMode === 'high' ? 2 : 1.2, minRenderScale = qualityMode === 'high' ? 1.5 : 0.85;
-let performanceScale = maxRenderScale, lowFpsSamples = 0;
+const requestedQuality = pageQuery.get('quality') ?? 'balanced';
+const qualityMode = ['high', 'balanced', 'performance', 'manual'].includes(requestedQuality) ? requestedQuality : 'balanced';
+const manualQualityScale = Math.min(2, Math.max(0.7, Number.parseFloat(pageQuery.get('scale') ?? '1.25') || 1.25));
+const qualityProfile = {
+  high: { start: 2, min: 2, max: 2, target: 0, antialias: true },
+  balanced: { start: 1.25, min: 0.9, max: 1.4, target: 45, antialias: true },
+  performance: { start: 1, min: 0.7, max: 1.1, target: 30, antialias: false },
+  manual: { start: manualQualityScale, min: manualQualityScale, max: manualQualityScale, target: 0, antialias: manualQualityScale >= 1.1 },
+}[qualityMode];
+const maxRenderScale = qualityProfile.max, minRenderScale = qualityProfile.min, targetFps = qualityProfile.target;
+let performanceScale = qualityProfile.start, lowFpsSamples = 0, highFpsSamples = 0;
 const trackDisplayName = circuitKey ? CIRCUITS[circuitKey].name : 'Stadium test track';
 setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Loading ${trackDisplayName}`, 'Downloading circuit data', 8);
 const scenery = circuitKey && Object.hasOwn(SCENERY_STYLE, circuitKey) ? await loadScenery(circuitKey) : undefined;
@@ -660,10 +677,10 @@ for (const name of ['FL', 'FR', 'RL', 'RR']) {
 }
 setLoadingStage(circuitKey ? 'TRACK LOADING' : 'GAME INITIALISATION', `Building ${trackDisplayName}`, 'Rendering the circuit and roadside scenery', 45);
 await nextPaint();
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: qualityMode === 'high', alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: qualityProfile.antialias, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: false });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-renderer.shadowMap.enabled = qualityMode === 'high'; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
+renderer.shadowMap.enabled = false; renderer.shadowMap.autoUpdate = false;
 const scene = new THREE.Scene();
 scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
@@ -672,12 +689,12 @@ const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 4000);
 const hemi = new THREE.HemisphereLight(0xd6e8ff, 0x4a5a32, 0.7);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff0d8, 2.8);
-sun.castShadow = qualityMode === 'high'; sun.shadow.mapSize.set(2048, 2048);
+sun.castShadow = false;
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 140 });
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
 scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
-const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
+const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode, qualityScale: performanceScale }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
 // Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
@@ -816,7 +833,10 @@ function wearSkins(list) {
   // The mirrors leave out your own rear wheels, so they show the track behind instead.
   const rearWheels = model.wheels.filter(w => !w.front).map(w => w.pivot);
   // From the halo cam and T-cam, high over the glass, they show what the driver sees in them.
-  model.mirrors?.forEach(m => m.userData.mirror ? m.userData.mirror(true) : makeMirror(m, { hide: rearWheels, viewer: (cam, out) =>
+  model.mirrors?.forEach(m => m.userData.mirror ? m.userData.mirror(true) : makeMirror(m, {
+    width: performanceScale >= 1.6 ? 224 : performanceScale >= 1 ? 160 : 128,
+    refreshInterval: performanceScale >= 1.6 ? 180 : performanceScale >= 1 ? 260 : 420,
+    hide: rearWheels, viewer: (cam, out) =>
     cockpit && !overview && (CAMERAS[camIndex] === 'Halo' || CAMERAS[camIndex] === 'T-cam') ? model.body.localToWorld(out.set(model.eye[0], model.eye[1], 0)) : out.setFromMatrixPosition(cam.matrixWorld) }));
 }
 wearSkins(skins);
@@ -881,7 +901,6 @@ function applyPerformanceScale() {
 }
 new ResizeObserver(resize).observe(canvas);
 const forward = new THREE.Vector3(), chase = new THREE.Vector3(), look = new THREE.Vector3();
-let lastShadowUpdate = -Infinity;
 // Cockpit view: local +x forward -> camera -z, pitched 4° down toward the road.
 const head = { x: 0, z: 0, yaw: 0 };
 const eyeTilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(-4 * Math.PI / 180, -Math.PI / 2, 0, 'YXZ'));
@@ -898,26 +917,26 @@ const ONBOARD = { Cockpit: { dx: 0, dy: 0, tilt: eyeTilt, fov: 72 },
   'T-cam': { dx: -0.38, dy: 0.49, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.10, -Math.PI / 2, 0, 'YXZ')), fov: 70 } };
 const lean = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
 function placeScene(dt) {
-  const c = sim.car, g = model.group, mode = CAMERAS[camIndex];
+  const alpha = sim.interpolationAlpha;
+  const displayCars = sim.entries.map(e => {
+    const a = e.renderPrevious, b = e.renderCurrent;
+    if (!a || !b) return e.car;
+    const turn = Math.atan2(Math.sin(b.heading - a.heading), Math.cos(b.heading - a.heading));
+    return { ...e.car, x: a.x + (b.x - a.x) * alpha, y: a.y + (b.y - a.y) * alpha, heading: a.heading + turn * alpha };
+  });
+  const c = displayCars[0], g = model.group, mode = CAMERAS[camIndex];
   sim.entries.forEach((e, i) => {
     const carItem = cars[skins[i]];
     if (!e.player) {
-      const dx = e.car.x - c.x, dy = e.car.y - c.y, distanceSquared = dx * dx + dy * dy;
+      const dx = displayCars[i].x - c.x, dy = displayCars[i].y - c.y, distanceSquared = dx * dx + dy * dy;
       if (carItem.lowActive ? distanceSquared < 85 * 85 : distanceSquared > 115 * 115) carItem.lowActive = !carItem.lowActive;
     } else carItem.lowActive = false;
     const useLowDetail = !e.player && carItem.lowActive;
     carItem.model.group.visible = !useLowDetail;
     carItem.lowModel.group.visible = useLowDetail;
     const visualModel = useLowDetail ? carItem.lowModel : carItem.model;
-    poseCar(visualModel, e.car, carItem.wheelAngle, dt);
+    poseCar(visualModel, displayCars[i], carItem.wheelAngle, dt);
   });
-  // Shadow maps are costly on scenery-heavy circuits. Keep full-resolution,
-  // soft shadows, but refresh the map at 12.5 Hz instead of re-rendering it
-  // every display frame. The shadow camera and sunlight anchor move together.
-  if (renderer.shadowMap.enabled && performance.now() - lastShadowUpdate >= 80) {
-    sun.position.copy(g.position).addScaledVector(sunDir, SUN_DISTANCE); sun.target.position.copy(g.position);
-    renderer.shadowMap.needsUpdate = true; lastShadowUpdate = performance.now();
-  }
   forward.set(Math.cos(c.heading), 0, -Math.sin(c.heading));
   // The helmet stays in the T-cam shot, below and ahead of the lens.
   model.driver.forEach(m => { m.visible = overview || !(mode === 'Cockpit' || mode === 'Driver'); });
@@ -968,7 +987,7 @@ const outline = Array.from({ length: Math.ceil(track.length / 2) }, (_, i) => tr
 const mapBounds = outline.reduce((b, [x, y]) => ({ minX: Math.min(b.minX, x), maxX: Math.max(b.maxX, x), minY: Math.min(b.minY, y), maxY: Math.max(b.maxY, y) }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
 const minimap = $('minimap'), map2d = minimap.getContext('2d');
 function drawMinimap() {
-  const dpr = Math.min(devicePixelRatio || 1, qualityMode === 'high' ? 1.25 : 1), w = minimap.clientWidth, h = minimap.clientHeight;
+  const dpr = Math.min(devicePixelRatio || 1, qualityMode === 'high' ? 1.25 : qualityMode === 'balanced' ? 1.15 : 1), w = minimap.clientWidth, h = minimap.clientHeight;
   if (minimap.width !== Math.round(w * dpr) || minimap.height !== Math.round(h * dpr)) { minimap.width = Math.round(w * dpr); minimap.height = Math.round(h * dpr); }
   const pad = 12, scale = Math.min((w - 2 * pad) / (mapBounds.maxX - mapBounds.minX), (h - 2 * pad) / (mapBounds.maxY - mapBounds.minY));
   const ox = (w - (mapBounds.maxX - mapBounds.minX) * scale) / 2, oy = (h - (mapBounds.maxY - mapBounds.minY) * scale) / 2;
@@ -997,10 +1016,21 @@ function render(dt = 0, now = performance.now()) {
   if (now - fpsWindowStart >= 1000) {
     measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart));
     renderedFrames = 0; fpsWindowStart = now;
-    if (measuredFps < 30 && performanceScale > minRenderScale) {
-      lowFpsSamples++;
-      if (lowFpsSamples >= 2) { performanceScale = Math.max(minRenderScale, performanceScale - 0.1); applyPerformanceScale(); lowFpsSamples = 0; }
-    } else lowFpsSamples = 0;
+    if (qualityMode === 'balanced' || qualityMode === 'performance') {
+      if (measuredFps < targetFps - 2 && performanceScale > minRenderScale + 0.001) {
+        lowFpsSamples++; highFpsSamples = 0;
+        if (lowFpsSamples >= 2) {
+          performanceScale = Math.max(minRenderScale, Math.round((performanceScale - 0.08) * 100) / 100);
+          applyPerformanceScale(); lowFpsSamples = 0;
+        }
+      } else if (measuredFps > targetFps + 8 && performanceScale < maxRenderScale - 0.001) {
+        highFpsSamples++; lowFpsSamples = 0;
+        if (highFpsSamples >= 4) {
+          performanceScale = Math.min(maxRenderScale, Math.round((performanceScale + 0.04) * 100) / 100);
+          applyPerformanceScale(); highFpsSamples = 0;
+        }
+      } else { lowFpsSamples = 0; highFpsSamples = 0; }
+    }
   }
   if (now - lastHudUpdate < 100) return;
   lastHudUpdate = now;
@@ -1198,8 +1228,10 @@ function launchFromMenu() {
   }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
-  const quality = $('menu-quality').value === 'performance' ? 'performance' : 'high';
-  if (quality === 'high') params.set('quality', 'high'); else params.delete('quality');
+  const quality = $('menu-quality').value;
+  if (quality === 'balanced') params.delete('quality'); else params.set('quality', quality);
+  if (quality === 'manual') params.set('scale', (Number($('menu-quality-slider').value) / 100).toFixed(2));
+  else params.delete('scale');
   const next = params.toString(), current = new URLSearchParams(location.search).toString();
   if (next !== current) {
     try { sessionStorage.setItem('f1-menu-autostart', '1'); } catch (error) {}
@@ -1216,6 +1248,15 @@ $('menu-opponents').disabled = $('menu-session-type').value === 'practice';
 $('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice'; });
 $('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
 $('menu-quality').value = qualityMode;
+$('menu-quality-slider').value = String(Math.round(performanceScale * 100));
+function updateManualQualityControls() {
+  const manual = $('menu-quality').value === 'manual';
+  $('manual-quality-field').hidden = !manual;
+  $('manual-quality-value').textContent = `${$('menu-quality-slider').value}%`;
+}
+$('menu-quality').addEventListener('change', updateManualQualityControls);
+$('menu-quality-slider').addEventListener('input', updateManualQualityControls);
+updateManualQualityControls();
 $('start-session').addEventListener('click', launchFromMenu);
 $('menu-profile').addEventListener('click', () => $('profile-open').click());
 $('pause-open').addEventListener('click', showPauseMenu);
