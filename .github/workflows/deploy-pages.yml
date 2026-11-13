@@ -30,7 +30,7 @@ jobs:
           import re
 
           html = Path("index.html").read_text()
-          modules = re.findall(r'<script type="module">\\s*(.*?)</script>', html, re.S)
+          modules = re.findall(r'<script type="module">\s*(.*?)</script>', html, re.S)
           if len(modules) != 1:
               raise SystemExit(f"Expected one inline application module, found {len(modules)}")
           Path("/tmp/f1-app.mjs").write_text(modules[0])
