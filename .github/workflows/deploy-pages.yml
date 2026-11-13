@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -39,11 +39,22 @@ jobs:
           node --check src/world3d.mjs
           node --check src/mirror3d.mjs
           node --check src/race.mjs
+
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Run unit tests
         run: node --test test/*.test.mjs
 
   deploy:
-    needs: test
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read
