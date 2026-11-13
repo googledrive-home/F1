@@ -271,7 +271,7 @@ export function buildWorld({ halfStraight, radius, roadWidth, boxColors = [] }) 
 // elevation: everything on the ground's height, and terrain with the lake
 // instead of the hill ring and flat field, buildTerrain). scenery
 // (scenery.mjs): the ground's colours, the trees and the sea, if any.
-export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCENERY, quality = 'performance' } = {}) {
+export function buildCircuitWorld(track, { boxColors = [], scenery = DEFAULT_SCENERY, quality = 'high' } = {}) {
   const highQuality = quality === 'high';
   const world = new THREE.Group(), half = track.roadWidth / 2, wallAt = track.wallOffset;
   const { x: X, y: Y, s: S, heading: H, kerb } = track.samples, n = X.length;
