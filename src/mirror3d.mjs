@@ -11,7 +11,7 @@ let rendering = false; // a mirror seen in another mirror keeps its last image
 // tilt: radians the mirror is angled up (the view moves up by twice that);
 // extend: screen pixels the glass (and its image) reaches further down;
 // viewer(camera, out): the eye the mirror is seen from (default: the camera's position).
-export function makeMirror(mesh, { width = 512, hide = [], tilt = 0.025, extend = 3, viewer = (cam, out) => out.setFromMatrixPosition(cam.matrixWorld) } = {}) {
+export function makeMirror(mesh, { width = 160, samples = 0, refreshInterval = 250, hide = [], tilt = 0.025, extend = 3, viewer = (cam, out) => out.setFromMatrixPosition(cam.matrixWorld) } = {}) {
   // The glass's plane in mesh space: area-weighted normal, centroid and a rectangle around it.
   const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry, P = g.attributes.position;
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3(), centre = new THREE.Vector3();
@@ -44,7 +44,7 @@ export function makeMirror(mesh, { width = 512, hide = [], tilt = 0.025, extend 
   { const nt = n.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(v, Math.sin(tilt));
     v.multiplyScalar(Math.cos(tilt)).addScaledVector(n, -Math.sin(tilt)); n.copy(nt); }
 
-  const target = new THREE.WebGLRenderTarget(width, Math.max(16, Math.round(width * (v1 - v0) / (u1 - u0))), { type: THREE.HalfFloatType, samples: 4 });
+  const target = new THREE.WebGLRenderTarget(width, Math.max(16, Math.round(width * (v1 - v0) / (u1 - u0))), { type: THREE.HalfFloatType, samples });
   const textureMatrix = new THREE.Matrix4(), mirrorCamera = new THREE.PerspectiveCamera();
   const modelled = mesh.material, glass = new THREE.ShaderMaterial({
     name: 'mirror',
@@ -63,8 +63,11 @@ export function makeMirror(mesh, { width = 512, hide = [], tilt = 0.025, extend 
   const q = new THREE.Vector3(), down = new THREE.Vector3(), size = new THREE.Vector2();
   const C = new THREE.Vector3(), N = new THREE.Vector3(), up = new THREE.Vector3(), eye = new THREE.Vector3(), p = new THREE.Vector3();
   const bias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  let lastRenderedAt = -Infinity;
   mesh.onBeforeRender = (renderer, scene, camera) => {
     if (rendering || mesh.material !== glass) return;
+    const now = performance.now();
+    if (now - lastRenderedAt < refreshInterval) return;
     C.copy(centre).applyMatrix4(mesh.matrixWorld);
     N.copy(n).transformDirection(mesh.matrixWorld); up.copy(v).transformDirection(mesh.matrixWorld);
     const dist = viewer(camera, eye).sub(C).dot(N);
@@ -94,6 +97,7 @@ export function makeMirror(mesh, { width = 512, hide = [], tilt = 0.025, extend 
     renderer.setRenderTarget(previous);
     hide.forEach((o, i) => { o.visible = shown[i]; });
     renderer.shadowMap.autoUpdate = shadows; mesh.visible = true; rendering = false;
+    lastRenderedAt = now;
   };
   return mesh;
 }
