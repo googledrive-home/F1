@@ -38,6 +38,7 @@ jobs:
           node --check /tmp/f1-app.mjs
           node --check src/world3d.mjs
           node --check src/mirror3d.mjs
+          node --check src/race.mjs
       - name: Run unit tests
         run: node --test test/*.test.mjs
 
