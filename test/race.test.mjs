@@ -20,10 +20,13 @@ test('the player starts behind every opponent and solo starts stay on pole', () 
   }
 });
 
-test('Performance mode supports a stable 120 Hz race timestep', () => {
+test('race timesteps support the game 60 Hz setting and optional 120 Hz simulation', () => {
   const standard = createRace(track, { grid: [] });
+  const game = createRace(track, { grid: [], fixedDt: 1 / 60 });
   const performance = createRace(track, { grid: [], fixedDt: 1 / 120 });
   assert.equal(standard.fixedDt, FIXED_DT);
+  assert.equal(game.fixedDt, 1 / 60);
+  assert.equal(game.advance(1 / 30, { throttle: 0 }, track.surfaceAt, track.barrierAt), 2);
   assert.equal(performance.fixedDt, 1 / 120);
   assert.equal(performance.advance(1 / 30, { throttle: 0 }, track.surfaceAt, track.barrierAt), 4);
   assert.throws(() => createRace(track, { fixedDt: 1 / 30 }), /no greater than 1\/60 s/);
