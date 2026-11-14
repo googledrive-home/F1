@@ -92,8 +92,8 @@ test('car-to-car contact separates the cars, conserves momentum and never adds e
 function runRace(seconds, input) {
   const race = createRace(track);
   let maxOffset = 0, hardestContact = 0;
-  for (let i = 0; i < seconds * 240; i++) {
-    race.advance(1 / 240, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < seconds / FIXED_DT; i++) {
+    race.advance(FIXED_DT, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
     for (const e of race.entries) {
       if (input && e.player) continue;
       maxOffset = Math.max(maxOffset, Math.abs(track.offset(e.car.x, e.car.y)));
@@ -127,8 +127,8 @@ function runStart(seconds, input, seed = 7) {
   const race = createRace(track, { start: { seed } });
   const lit = new Map();
   let hardestContact = 0, moved = 0;
-  for (let i = 0; i < seconds * 240; i++) {
-    race.advance(1 / 240, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < seconds / FIXED_DT; i++) {
+    race.advance(FIXED_DT, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
     const s = race.start;
     if (s.phase === 'lights') {
       if (!lit.has(s.lit)) lit.set(s.lit, race.time);
@@ -176,8 +176,8 @@ function runToFlag(laps, input, setup) {
   const race = createRace(track, { laps });
   setup?.(race);
   let hardestContact = 0;
-  for (let i = 0; i < 400 * 240 && !race.finish.done; i++) {
-    race.advance(1 / 240, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < 400 / FIXED_DT && !race.finish.done; i++) {
+    race.advance(FIXED_DT, input?.(race) ?? null, track.surfaceAt, track.barrierAt);
     for (const e of race.entries)
       if (e.car.contact && Math.abs(e.car.contact.time - e.car.time) < 1e-9) hardestContact = Math.max(hardestContact, e.car.contact.speed);
     if (input && race.time > 200) break;
@@ -222,8 +222,8 @@ function runPitRace(laps, setup) {
   const race = createRace(track, { laps, compoundRule: true, start: { seed: 3 } });
   setup?.(race);
   let hardestContact = 0, pitSpeed = 0;
-  for (let i = 0; i < 400 * 240 && !race.finish.done; i++) {
-    race.advance(1 / 240, null, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < 400 / FIXED_DT && !race.finish.done; i++) {
+    race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
     for (const e of race.entries) {
       if (e.car.contact && Math.abs(e.car.contact.time - e.car.time) < 1e-9) hardestContact = Math.max(hardestContact, e.car.contact.speed);
       const s = track.progress(e.car.x, e.car.y);
@@ -269,7 +269,7 @@ test('the player can request a stop and a compound; the autopilot boxes and fits
   race.requestPit('soft');
   race.requestPit('intermediate'); // unknown compounds are ignored
   assert.equal(race.entries[0].pitRequest, 'soft');
-  for (let i = 0; i < 70 * 240 && !race.entries[0].stops.length; i++) race.advance(1 / 240, null, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < 70 / FIXED_DT && !race.entries[0].stops.length; i++) race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
   const me = race.entries[0];
   assert.equal(me.stops.length, 1);
   assert.equal(me.car.compound, 'soft');
@@ -290,7 +290,7 @@ test('pit lane: the limiter cuts drive, speeding costs a penalty, a car stopped 
   const box = createRace(track), me = box.entries[0];
   box.requestPit('hard');
   at(box.car, me.box, pit.boxOffset, 0);
-  for (let i = 0; i < 5 * 240; i++) box.advance(1 / 240, { brake: 1 }, track.surfaceAt, track.barrierAt);
+  for (let i = 0; i < 5 / FIXED_DT; i++) box.advance(FIXED_DT, { brake: 1 }, track.surfaceAt, track.barrierAt);
   assert.equal(me.stops.length, 1);
   assert.equal(me.car.compound, 'hard');
   assert.ok(me.compounds.includes('medium') && me.compounds.includes('hard'));
