@@ -264,6 +264,8 @@ let pendingProfilePhoto = undefined;
 let pendingProfilePhotoUrl = null;
 let profileDbPromise = null;
 const PROFILE_NAME_KEY = 'agentiloop-f1-driver-name';
+let lastHomeReportedBestLap = null;
+let lastHomeScoreAttemptAt = 0;
 function profileInitial(name) { return Array.from(String(name || 'You').trim())[0]?.toUpperCase() || 'Y'; }
 function openProfileDb() {
   if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB is unavailable'));
@@ -329,7 +331,16 @@ function previewProfilePhoto(url, name) {
 async function loadDriverProfile() {
   try {
     const savedName = localStorage.getItem(PROFILE_NAME_KEY);
-    if (savedName && savedName.trim()) driverProfile.name = savedName.trim().slice(0, 24);
+    const accountProfile = window.parent?.HomeAccount?.getProfile?.()
+      || window.parent?.PlaySpaceAccount?.getProfile?.()
+      || null;
+    const accountName = String(accountProfile?.username || accountProfile?.name || "").trim();
+    if (savedName && savedName.trim()) {
+      driverProfile.name = savedName.trim().slice(0, 24);
+    } else if (accountName) {
+      driverProfile.name = accountName.slice(0, 24);
+      localStorage.setItem(PROFILE_NAME_KEY, driverProfile.name);
+    }
   } catch {}
   try {
     driverProfile.avatarBlob = await readProfilePhoto();
@@ -1062,6 +1073,18 @@ function render(dt = 0, now = performance.now()) {
   $('last-lap').textContent = formatLapTime(ts.lastLap?.time);
   $('last-lap').classList.toggle('invalid', ts.lastLap?.valid === false);
   $('best-lap').textContent = formatLapTime(ts.bestLap);
+  // Higher Home scores represent faster valid laps; report only when the best improves.
+  if (ts.bestLap !== null && Number.isFinite(ts.bestLap) && ts.bestLap > 0 &&
+      ts.bestLap !== lastHomeReportedBestLap && performance.now() - lastHomeScoreAttemptAt >= 1500) {
+    lastHomeScoreAttemptAt = performance.now();
+    try {
+      const bridge = window.HomeGameBridge || window.PlaySpaceGameBridge
+        || window.parent?.HomeGameBridge || window.parent?.PlaySpaceGameBridge;
+      if (bridge?.reportScore?.(Math.round(1_000_000 / ts.bestLap))) {
+        lastHomeReportedBestLap = ts.bestLap;
+      }
+    } catch {}
+  }
   // Sectors of the lap in progress, or of the last completed lap before the first split.
   const shown = ts.sectors.length ? ts.sectors : ts.laps.at(-1)?.sectors ?? [];
   for (let k = 0; k < 3; k++) {
