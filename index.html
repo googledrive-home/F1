@@ -908,6 +908,104 @@ function cycleTime() {
 }
 $('daytime').hidden = !skyDome; $('daytime').onclick = cycleTime;
 if (skyDome) { applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`; }
+
+const WEATHER_MODES = ['dynamic', 'dry', 'cloudy', 'light-rain', 'heavy-rain'];
+const WEATHER_LABELS = { dynamic: 'Dynamic', dry: 'Dry', cloudy: 'Cloudy', 'light-rain': 'Light rain', 'heavy-rain': 'Heavy rain' };
+const weatherQuery = pageQuery.get('weather');
+let weatherMode = WEATHER_MODES.includes(weatherQuery) ? weatherQuery : 'dynamic';
+const WEATHER_PRESETS = {
+  dry: { wetness: 0, rain: 0, label: 'Dry' },
+  cloudy: { wetness: 0.025, rain: 0, label: 'Cloudy' },
+  'light-rain': { wetness: 0.34, rain: 0.42, label: 'Light rain' },
+  'heavy-rain': { wetness: 0.78, rain: 0.9, label: 'Heavy rain' },
+};
+function weatherTargetAt(seconds) {
+  if (weatherMode !== 'dynamic') return WEATHER_PRESETS[weatherMode];
+  if (seconds < 60) return { wetness: 0, rain: 0, label: 'Dry' };
+  if (seconds < 100) return { wetness: 0.025, rain: 0, label: 'Cloudy' };
+  if (seconds < 180) return { wetness: 0.34, rain: 0.42, label: 'Light rain' };
+  if (seconds < 270) return { wetness: 0.78, rain: 0.9, label: 'Heavy rain' };
+  if (seconds < 375) return { wetness: 0.42, rain: 0.48, label: 'Light rain' };
+  if (seconds < 480) return { wetness: 0.12, rain: 0.08, label: 'Drying track' };
+  return { wetness: 0, rain: 0, label: 'Dry' };
+}
+let weatherWetness = weatherMode === 'light-rain' ? 0.34 : weatherMode === 'heavy-rain' ? 0.78 : weatherMode === 'cloudy' ? 0.025 : 0;
+let weatherRainIntensity = weatherMode === 'light-rain' ? 0.42 : weatherMode === 'heavy-rain' ? 0.9 : 0;
+let weatherLabel = weatherMode === 'dynamic' ? 'Dry' : WEATHER_PRESETS[weatherMode].label;
+let weatherLastUpdate = performance.now();
+function updateWeather(now = performance.now()) {
+  const elapsed = Math.max(0, Math.min(0.1, (now - weatherLastUpdate) / 1000));
+  weatherLastUpdate = now;
+  const target = weatherTargetAt(sim?.time || 0);
+  const wetBlend = 1 - Math.exp(-elapsed / 22);
+  const rainBlend = 1 - Math.exp(-elapsed / 7);
+  weatherWetness += (target.wetness - weatherWetness) * wetBlend;
+  weatherRainIntensity += (target.rain - weatherRainIntensity) * rainBlend;
+  weatherLabel = target.label;
+}
+function cycleWeather() {
+  weatherMode = WEATHER_MODES[(WEATHER_MODES.indexOf(weatherMode) + 1) % WEATHER_MODES.length];
+  $('weather').textContent = `Weather: ${WEATHER_LABELS[weatherMode]}`;
+  $('weather').setAttribute('aria-label', `Weather mode: ${WEATHER_LABELS[weatherMode]}. Change weather conditions`);
+}
+$('weather').textContent = `Weather: ${WEATHER_LABELS[weatherMode]}`;
+$('weather').onclick = cycleWeather;
+
+function weatherSurfaceAt(x, y) {
+  const base = surfaceAt(x, y);
+  const baseGrip = typeof base === 'number' ? base : Number(base?.grip ?? 1);
+  const wetRoadFactor = 1 - 0.18 * weatherWetness;
+  if (base && typeof base === 'object') return { ...base, grip: baseGrip * wetRoadFactor, wetness: weatherWetness };
+  return { grip: baseGrip * wetRoadFactor, wetness: weatherWetness };
+}
+
+const rainCount = qualityMode === 'performance' ? 120 : qualityMode === 'high' ? 360 : 220;
+const rainPositions = new Float32Array(rainCount * 3);
+const rainSpeeds = new Float32Array(rainCount);
+for (let i = 0; i < rainCount; i++) {
+  rainPositions[i * 3] = (Math.random() - 0.5) * 52;
+  rainPositions[i * 3 + 1] = 4 + Math.random() * 24;
+  rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 52;
+  rainSpeeds[i] = 13 + Math.random() * 10;
+}
+const rainGeometry = new THREE.BufferGeometry();
+rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+const rainMaterial = new THREE.PointsMaterial({ color: 0xc9e2f7, size: 0.12, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true });
+const rainPoints = new THREE.Points(rainGeometry, rainMaterial);
+rainPoints.frustumCulled = false;
+rainPoints.visible = false;
+scene.add(rainPoints);
+
+function applyWeatherAtmosphere(dt = 0) {
+  const rain = weatherRainIntensity, wet = weatherWetness;
+  if (skyDome) {
+    const uniforms = skyDome.material.uniforms;
+    uniforms.uCoverage.value = Math.min(0.95, shownTime.sky.clouds + 0.34 * rain);
+    uniforms.uDensity.value = Math.min(0.9, shownTime.sky.cloudDensity + 0.22 * rain);
+  }
+  if (scene.fog) {
+    scene.fog.near = 220 * shownTime.fogFar / 1700;
+    scene.fog.far = shownTime.fogFar * (1 - 0.16 * rain - 0.08 * wet);
+  }
+  hemi.intensity = shownTime.hemi * (1 - 0.08 * rain);
+  sun.intensity = shownTime.sunIntensity * (1 - 0.12 * rain);
+  rainPoints.visible = rain > 0.025;
+  rainMaterial.opacity = Math.min(0.5, 0.08 + rain * 0.42);
+  rainMaterial.size = 0.08 + rain * 0.13;
+  if (sim) {
+    rainPoints.position.set(sim.car.x, 0, -sim.car.y);
+    for (let i = 0; i < rainCount; i++) {
+      const y = i * 3 + 1;
+      rainPositions[y] -= rainSpeeds[i] * rain * Math.max(0, dt);
+      if (rainPositions[y] < -1) {
+        rainPositions[y] = 12 + Math.random() * 18;
+        rainPositions[i * 3] = (Math.random() - 0.5) * 52;
+        rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 52;
+      }
+    }
+    rainGeometry.attributes.position.needsUpdate = true;
+  }
+}
 let lastChevronPlanAt = -Infinity;
 function updateChevrons(now = performance.now()) {
   if (chev) chev.mode(lineMode);
