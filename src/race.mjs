@@ -845,6 +845,19 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
     // Player's pit request: the compound to fit at the next stop (null cancels).
     // On autopilot the car boxes at the next pit entry; driving, stop in the box.
     requestPit(compound) { if (pit) entries[0].pitRequest = compound === null || TIRE_COMPOUNDS[compound] ? compound : entries[0].pitRequest; },
+    // AI tyre strategy reacts to track wetness. The player remains in control
+    // of their own pit requests; opponents request inters/wets/dry tyres and
+    // stop at their next available pit entry.
+    setWeather(wetness) {
+      if (!pit) return;
+      const level = clamp(Number(wetness) || 0, 0, 1);
+      const compound = level >= 0.56 ? 'wet' : level >= 0.16 ? 'intermediate' : 'medium';
+      for (const e of entries) {
+        if (e.player || e.finish || e.retired || e.pit) continue;
+        if (e.car.compound !== compound && e.pitRequest !== compound) e.pitRequest = compound;
+        else if (e.car.compound === compound && e.pitRequest === compound) e.pitRequest = null;
+      }
+    },
     // Grid position (1 = pole) of the player's car, from the grid distances.
     get gridSlot() { return [...entries].sort((a, b) => b.grid - a.grid).indexOf(entries[0]) + 1; },
     // Before lights out, the player takes grid position n (1 = pole): the car
