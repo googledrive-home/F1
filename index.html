@@ -659,11 +659,9 @@ $("f1-home-championship-next").addEventListener("click",()=>{
   const championship=homeAccountProfile?.f1Career?.championship;
   const nextId=championship?.rounds?.[championship.currentRound];
   if(!nextId||!CIRCUITS[nextId])return;
-  const params=new URLSearchParams(location.search);
-  params.set("track",nextId);params.set("race","1");params.delete("practice");
-  params.set("laps",params.get("laps")||"3");
-  try{sessionStorage.setItem("f1-menu-autostart","1");}catch{}
-  location.search=params.toString();
+  $("menu-track-select").value=nextId;
+  $("menu-session-type").value="race";
+  launchFromMenu();
 });
 $("f1-home-team-form").addEventListener("submit",async event=>{
   event.preventDefault();
