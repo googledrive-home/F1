@@ -324,3 +324,18 @@ test('an AI car stuck for retireAfter seconds retires: classified after running 
   rows = race.classification();
   assert.ok(rows[0].finished && rows[1].retired && !rows[1].finished);
 });
+
+
+test('AI pit strategy selects wet tyres as track wetness rises', () => {
+  const wetness = { value: 0.8 };
+  const race = createRace(track, {
+    grid: DEFAULT_GRID.slice(0, 1), laps: 2, compoundRule: true, start: { seed: 3 },
+    options: { weatherWetness: () => wetness.value },
+  });
+  for (let i = 0; i < 180 / FIXED_DT && !race.finish.done; i++) {
+    race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
+  }
+  const ai = race.entries[1];
+  assert.ok(race.finish.done, 'wet-weather race should complete');
+  assert.ok(ai.compounds.includes('wet'), JSON.stringify(ai.compounds));
+});
