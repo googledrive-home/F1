@@ -244,7 +244,19 @@ body.session-live main{height:100vh}
     <section class="home-account-panel" aria-labelledby="home-account-heading">
       <h3 id="home-account-heading">Google Drive Home account</h3>
       <p>Use the same username and password as your Google Drive Home player profile.</p>
-      <div id="f1-home-connected" hidden><div id="f1-home-account-summary"></div><button id="f1-home-disconnect" type="button">Disconnect account</button></div>
+      <div id="f1-home-connected" hidden><div id="f1-home-account-summary"></div><button id="f1-home-disconnect" type="button">Disconnect account</button>
+      <form id="f1-home-team-form" class="home-team-form">
+        <h4>Your racing team</h4>
+        <p>Create a team identity. Your car paint, accent and helmet colours are saved to your Home profile and apply to the next race.</p>
+        <label for="f1-home-team-name">Team name</label><input id="f1-home-team-name" type="text" minlength="3" maxlength="24" pattern="[A-Za-z0-9 _-]{3,24}" required>
+        <div class="home-team-colours">
+          <div><label for="f1-home-team-paint">Car paint</label><input id="f1-home-team-paint" type="color" value="#17385c"></div>
+          <div><label for="f1-home-team-accent">Accent</label><input id="f1-home-team-accent" type="color" value="#39e0ae"></div>
+          <div><label for="f1-home-team-helmet">Helmet</label><input id="f1-home-team-helmet" type="color" value="#f2bf5e"></div>
+        </div>
+        <label for="f1-home-team-number">Driver number</label><input id="f1-home-team-number" type="number" min="0" max="99" value="7" required>
+        <button class="profile-save" type="submit" id="f1-home-team-save">SAVE TEAM</button>
+      </form></div>
       <form id="f1-home-signin">
         <label for="f1-home-username">Home username</label>
         <input id="f1-home-username" type="text" maxlength="20" minlength="3" autocomplete="username" required>
@@ -289,6 +301,7 @@ const HOME_ACCOUNT_API = "https://hockey-multiplayer.onrender.com";
 const HOME_ACCOUNT_TOKEN_KEY = "homeAccountToken";
 let homeAccountToken = "";
 let homeAccountProfile = null;
+let homePlayerLivery = null;
 let homeGameSessionId = null;
 let homeGameStartPromise = null;
 let homeRaceReportedForCurrentSession = false;
@@ -318,6 +331,15 @@ function renderHomeAccount() {
   if (signedIn) {
     const p = homeAccountProfile;
     $("f1-home-account-summary").textContent = "Connected as " + (p.username || p.name || "Player") + " · Level " + (p.level || 1) + " · " + Number(p.coins || 0).toLocaleString() + " Home Coins";
+    const team=p.f1Team||null;
+    homePlayerLivery=team?{paint:parseInt(team.paint.slice(1),16),accent:parseInt(team.accent.slice(1),16),helmet:parseInt(team.helmet.slice(1),16)}:null;
+    if(team){
+      $("f1-home-team-name").value=team.name||"";
+      $("f1-home-team-paint").value=team.paint||"#17385c";
+      $("f1-home-team-accent").value=team.accent||"#39e0ae";
+      $("f1-home-team-helmet").value=team.helmet||"#f2bf5e";
+      $("f1-home-team-number").value=String(team.number??7);
+    }
   }
   if (retry) retry.hidden = !homePendingRaceResult || !signedIn;
 }
@@ -576,6 +598,22 @@ $("f1-home-signin").addEventListener("submit", async event => {
     await submitHomePendingRaceResult();
   } catch (error) { setHomeAccountStatus(error.message || "Could not connect your account.", true); }
   finally { button.disabled = false; }
+});
+$("f1-home-team-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const button=$("f1-home-team-save");button.disabled=true;setHomeAccountStatus("Saving your racing team…");
+  try{
+    const result=await homeAccountRequest("/account/f1/team",{method:"POST",body:{
+      name:$("f1-home-team-name").value.trim(),paint:$("f1-home-team-paint").value,
+      accent:$("f1-home-team-accent").value,helmet:$("f1-home-team-helmet").value,
+      number:Number($("f1-home-team-number").value)
+    }});
+    homeAccountProfile.f1Team=result.team;
+    homePlayerLivery={paint:parseInt(result.team.paint.slice(1),16),accent:parseInt(result.team.accent.slice(1),16),helmet:parseInt(result.team.helmet.slice(1),16)};
+    setHomeAccountStatus("Team saved. Your livery will be used for your next race.");
+    renderHomeAccount();
+  }catch(error){setHomeAccountStatus(error.message||"Could not save your team.",true);}
+  finally{button.disabled=false;}
 });
 $("f1-home-disconnect").addEventListener("click", async () => {
   try { await homeAccountRequest("/account/logout", { method: "POST", body: {} }); } catch {}
@@ -995,7 +1033,7 @@ function buildOpponentProxy({ paint = 0x0e1626, accent = 0x39e0ae } = {}) {
   return { group, body, wheels, driver: [], drsFlap, mirrors: [], cockpitSides: [] };
 }
 const cars = [
-  { model: buildCar(), lowModel: buildOpponentProxy({ paint: 0x0e1626, accent: 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
+  { model: buildCar(homePlayerLivery || undefined), lowModel: buildOpponentProxy({ paint: homePlayerLivery?.paint ?? 0x0e1626, accent: homePlayerLivery?.accent ?? 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
   ...DEFAULT_GRID.map((spec, i) => ({
     model: buildCar({ paint: spec.color, accent: spec.accent, helmet: spec.accent, index: i + 1 }),
     lowModel: buildOpponentProxy({ paint: spec.color, accent: spec.accent }),
