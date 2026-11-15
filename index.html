@@ -1131,6 +1131,8 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   raceProgressionRecorded = false;
+  replaySnapshots = []; replayLastCapture = -Infinity; replayActive = false; replayPlaying = false;
+  $('replay-panel').hidden = true; $('pause-replay').hidden = true;
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
     runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
@@ -1617,9 +1619,9 @@ const ONBOARD = { Cockpit: { dx: 0, dy: 0, tilt: eyeTilt, fov: 72 },
   Halo: { dx: -0.25, dy: 0.45, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.24, -Math.PI / 2, 0, 'YXZ')), fov: 73 },
   'T-cam': { dx: -0.38, dy: 0.49, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.10, -Math.PI / 2, 0, 'YXZ')), fov: 70 } };
 const lean = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
-function placeScene(dt) {
+function placeScene(dt, replayCars = null) {
   const alpha = sim.interpolationAlpha;
-  const displayCars = sim.entries.map(e => {
+  const displayCars = replayCars || sim.entries.map(e => {
     const a = e.renderPrevious, b = e.renderCurrent;
     if (!a || !b) return e.car;
     const turn = Math.atan2(Math.sin(b.heading - a.heading), Math.cos(b.heading - a.heading));
@@ -1710,9 +1712,9 @@ function drawMinimap() {
     map2d.lineWidth = 1; map2d.strokeStyle = e.player ? '#ffffff' : '#000000a0'; map2d.stroke();
   }
 }
-function render(dt = 0, now = performance.now()) {
+function render(dt = 0, now = performance.now(), replayCars = null) {
   const c = sim.car;
-  fadeTime(); applyWeatherAtmosphere(dt); updateChevrons(); placeScene(dt); world.userData.update?.(dt);
+  fadeTime(); applyWeatherAtmosphere(dt); updateChevrons(); placeScene(dt, replayCars); world.userData.update?.(dt);
   renderedFrames++;
   if (now - fpsWindowStart >= 1000) {
     measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart));
@@ -1868,6 +1870,7 @@ function frame(now) {
     // On autopilot the race's traffic-aware driver chooses the player's inputs.
     if (autopilot && !forwardRecovery) command = sim.entries[0].command ?? { throttle: 0, brake: 0, steer: 0 };
     timer.update(sim.car, { wallsOnly: assistOn });
+    captureReplaySnapshot();
   }
   if (audio) {
     // Quieter from the overview camera; silent while paused or muted.
@@ -1877,7 +1880,27 @@ function frame(now) {
   rumbleLevels = paused ? { strong: 0, weak: 0, left: 0, right: 0 } : rumbleModel.update(dt, sim.car, command);
   rumblePlayer.play([...(navigator.getGamepads?.() ?? [])].filter(p => p?.connected), rumbleLevels, now);
   previousTime = now;
-  if (sessionStarted && !paused) {
+  if (replayActive && sessionStarted) {
+    const replayDt = Math.max(0, Math.min(0.1, (now - replayLastFrame) / 1000));
+    replayLastFrame = now;
+    const first = replaySnapshots[0]?.time || 0;
+    const last = replaySnapshots[replaySnapshots.length - 1]?.time || first;
+    if (replayPlaying) {
+      replayTime = Math.min(last, replayTime + replayDt * replaySpeed);
+      if (replayTime >= last) replayPlaying = false;
+    }
+    const snapshot = sampleReplaySnapshot(replayTime);
+    if (snapshot) {
+      weatherWetness = snapshot.weather.wetness;
+      weatherRainIntensity = snapshot.weather.rain;
+      weatherCloudiness = snapshot.weather.clouds;
+      weatherLabel = snapshot.weather.label;
+      render(replayDt * replaySpeed, now, snapshot.cars);
+      $('status').textContent = 'Replay · ' + replayClock(replayTime - first) + ' / ' + replayClock(last - first);
+    }
+    updateReplayControls();
+    lastRenderAt = now;
+  } else if (sessionStarted && !paused) {
     const visualDt = lastRenderAt ? Math.min((now - lastRenderAt) / 1000, 0.1) : dt;
     render(visualDt, now); lastRenderAt = now;
   }
@@ -1907,6 +1930,7 @@ function showMainMenu() {
 function showPauseMenu() {
   if (!sessionStarted) return;
   pause(true); updatePauseControlLabels();
+  $('pause-replay').hidden = replaySnapshots.length < 2 || !sim?.finish?.done;
   $('pause-menu').hidden = false; document.body.classList.add('race-paused');
 }
 function hidePauseMenu() {
@@ -1986,6 +2010,16 @@ $('start-session').addEventListener('click', launchFromMenu);
 $('menu-profile').addEventListener('click', () => $('profile-open').click());
 $('pause-open').addEventListener('click', showPauseMenu);
 $('pause-resume').addEventListener('click', hidePauseMenu);
+$('pause-replay').addEventListener('click', startReplay);
+$('replay-exit').addEventListener('click', exitReplay);
+$('replay-toggle').addEventListener('click', () => { replayPlaying = !replayPlaying; replayLastFrame = performance.now(); updateReplayControls(); });
+$('replay-speed').addEventListener('change', () => { replaySpeed = Number($('replay-speed').value) || 1; });
+$('replay-scrubber').addEventListener('input', () => {
+  if (!replaySnapshots.length) return;
+  replayTime = replaySnapshots[0].time + Number($('replay-scrubber').value);
+  replayLastFrame = performance.now();
+  updateReplayControls();
+});
 $('pause-restart').addEventListener('click', () => { reset(); hidePauseMenu(); });
 $('pause-back-menu').addEventListener('click', openMainMenuFromPause);
 document.querySelectorAll('#pause-controls [data-original-control]').forEach(button => {
