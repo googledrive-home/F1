@@ -85,10 +85,18 @@ export const DEFAULT_CAR = Object.freeze({
 // Dry compounds (illustrative): peak-grip multiplier and wear-rate multiplier
 // relative to the medium. Softer rubber grips more and wears faster.
 export const TIRE_COMPOUNDS = Object.freeze({
-  soft: Object.freeze({ grip: 1.015, wear: 2 }),
-  medium: Object.freeze({ grip: 1, wear: 1 }),
-  hard: Object.freeze({ grip: 0.985, wear: 0.55 }),
+  soft: Object.freeze({ grip: 1.015, wear: 2, dryGrip: 1, wetGrip: 0.61 }),
+  medium: Object.freeze({ grip: 1, wear: 1, dryGrip: 1, wetGrip: 0.65 }),
+  hard: Object.freeze({ grip: 0.985, wear: 0.55, dryGrip: 1, wetGrip: 0.69 }),
+  intermediate: Object.freeze({ grip: 0.975, wear: 0.8, dryGrip: 0.94, wetGrip: 1.02 }),
+  wet: Object.freeze({ grip: 0.95, wear: 0.7, dryGrip: 0.75, wetGrip: 1.08 }),
 });
+export function tireWeatherGrip(compound, wetness = 0) {
+  const wet = clamp(Number(wetness) || 0, 0, 1);
+  const dryGrip = Number.isFinite(compound?.dryGrip) ? compound.dryGrip : 1;
+  const wetGrip = Number.isFinite(compound?.wetGrip) ? compound.wetGrip : 0.65;
+  return dryGrip + (wetGrip - dryGrip) * wet;
+}
 export const FIXED_DT = 1 / 60;
 export const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const RPM = 60 / (2 * Math.PI);
@@ -490,7 +498,8 @@ export function step(car, input = {}, dt = FIXED_DT, surfaceAt = () => 1, barrie
     const compound = TIRE_COMPOUNDS[car.compound ?? c.tireCompound];
     const kinematicSlip = steadySlipAngle(wheelV, wheelU);
     car.slipAngle[i] = relaxSlipAngle(car.slipAngle[i], kinematicSlip, Math.hypot(wheelU, wheelV), c, dt);
-    const tire = tireForce(demand, wheelV, wheelU, loads[i], grip * compound.grip * tempGrip * wearGrip, c, dt, car.slipAngle[i],
+    const weatherGrip = tireWeatherGrip(compound, car.weatherWetness);
+    const tire = tireForce(demand, wheelV, wheelU, loads[i], grip * compound.grip * tempGrip * wearGrip * weatherGrip, c, dt, car.slipAngle[i],
       (front ? c.corneringStiffness : c.rearCorneringStiffness)
         * Math.pow(Math.max(loads[i], 1) / (c.mass * 9.81 * (front ? c.frontWeight : 1 - c.frontWeight) / 2), c.stiffnessLoadExponent));
     tire.kinematicSlipAngle = kinematicSlip;
