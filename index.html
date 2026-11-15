@@ -626,7 +626,7 @@ $("f1-home-team-form").addEventListener("submit",async event=>{
     homeAccountProfile.f1Team=result.team;
     try { sessionStorage.setItem("homeAccountTeam",JSON.stringify(result.team)); } catch {}
     homePlayerLivery={paint:parseInt(result.team.paint.slice(1),16),accent:parseInt(result.team.accent.slice(1),16),helmet:parseInt(result.team.helmet.slice(1),16)};
-    setHomeAccountStatus("Team saved. Your livery will be used for your next race.");
+    setHomeAccountStatus("Team saved. Refresh the simulator to apply your new livery to the car.");
     renderHomeAccount();
   }catch(error){setHomeAccountStatus(error.message||"Could not save your team.",true);}
   finally{button.disabled=false;}
