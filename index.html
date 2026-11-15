@@ -554,7 +554,15 @@ async function loadF1Progression() {
       const cloud = await homeAccountRequest('/account/saves/f1-simulator');
       if (cloud.save?.progression) {
         progressionStore = cleanProgressionState(cloud.save.progression);
-        try { localStorage.setItem(F1_TEAM_KEY, JSON.stringify(progressionStore.team)); } catch {}
+        const localTeam = JSON.stringify(readLocalTeam());
+        const cloudTeam = JSON.stringify(progressionStore.team);
+        try { localStorage.setItem(F1_TEAM_KEY, cloudTeam); } catch {}
+        if (localTeam !== cloudTeam && sessionStorage.getItem('f1-team-refresh') !== '1') {
+          sessionStorage.setItem('f1-team-refresh', '1');
+          location.reload();
+          return;
+        }
+        sessionStorage.removeItem('f1-team-refresh');
       } else if (localState) await persistF1Progression();
     } catch (error) {
       console.warn('F1 cloud career save unavailable; keeping this device save:', error.message);
@@ -753,6 +761,11 @@ function openDriverProfile() {
   $('profile-status').textContent = '';
   previewProfilePhoto(driverProfile.avatarUrl, driverProfile.name);
   refreshHomeAccountUi();
+  const team = readLocalTeam();
+  $('f1-team-name').value = team.name;
+  $('f1-team-paint').value = team.paint;
+  $('f1-team-accent').value = team.accent;
+  $('f1-team-helmet').value = team.helmet;
   $('driver-profile-modal').hidden = false;
   $('profile-name-input').focus();
 }
@@ -849,6 +862,26 @@ $('home-account-disconnect').addEventListener('click', async () => {
   sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY);
   connectedHomeAccount = null;
   refreshHomeAccountUi();
+});
+
+$('f1-team-save').addEventListener('click', async () => {
+  const team = {
+    name: String($('f1-team-name').value || '').trim().slice(0, 24) || F1_DEFAULT_TEAM.name,
+    paint: validTeamColor($('f1-team-paint').value, F1_DEFAULT_TEAM.paint),
+    accent: validTeamColor($('f1-team-accent').value, F1_DEFAULT_TEAM.accent),
+    helmet: validTeamColor($('f1-team-helmet').value, F1_DEFAULT_TEAM.helmet)
+  };
+  progressionStore.team = team;
+  try { localStorage.setItem(F1_TEAM_KEY, JSON.stringify(team)); } catch {}
+  $('profile-status').textContent = 'Saving your custom team…';
+  try {
+    if (connectedHomeAccount?.profile) await persistF1Progression();
+    $('profile-status').textContent = 'Custom team saved. Reloading to apply the new car livery…';
+    location.reload();
+  } catch (error) {
+    $('profile-status').textContent = 'Saved on this device, but Home sync failed: ' + error.message;
+    location.reload();
+  }
 });
 
 document.addEventListener('keydown', event => {
