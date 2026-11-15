@@ -522,12 +522,13 @@ let replaySnapshots = [];
 let replayLastCapture = -Infinity;
 let replayActive = false;
 let replayPlaying = false;
+let replayFinalCaptured = false;
 let replayTime = 0;
 let replayLastFrame = 0;
 let replaySpeed = 1;
 
 function captureReplaySnapshot() {
-  if (!sim?.entries?.length) return;
+  if (!sim?.entries?.length || replayFinalCaptured) return;
   const time = Number(sim.time) || 0;
   if (time - replayLastCapture < REPLAY_INTERVAL) return;
   replayLastCapture = time;
@@ -555,6 +556,7 @@ function captureReplaySnapshot() {
     weather: { wetness: weatherWetness, rain: weatherRainIntensity, clouds: weatherCloudiness, label: weatherLabel }
   });
   if (replaySnapshots.length > REPLAY_MAX_SNAPSHOTS) replaySnapshots.shift();
+  if (sim.finish?.done) replayFinalCaptured = true;
 }
 
 function sampleReplaySnapshot(time) {
@@ -1131,7 +1133,7 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   raceProgressionRecorded = false;
-  replaySnapshots = []; replayLastCapture = -Infinity; replayActive = false; replayPlaying = false;
+  replaySnapshots = []; replayLastCapture = -Infinity; replayActive = false; replayPlaying = false; replayFinalCaptured = false;
   $('replay-panel').hidden = true; $('pause-replay').hidden = true;
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
     runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
