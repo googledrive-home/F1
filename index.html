@@ -224,7 +224,21 @@ body.session-live main{height:100vh}
       <label for="profile-name-input">Driver name</label>
       <input id="profile-name-input" type="text" maxlength="24" autocomplete="nickname" placeholder="Enter your driver name">
     </div>
-    <p class="profile-local-note">Your profile picture and name are saved in this browser on this device. They are not uploaded to a server or shared between devices.</p>
+    <p class="profile-local-note">Your driver picture stays on this device. Connect your Google Drive Home player account below to sync racing progress, achievements and rewards across the gaming platform.</p>
+    <section class="home-account-panel" aria-labelledby="home-account-heading">
+      <h3 id="home-account-heading">Google Drive Home account</h3>
+      <p>Use the same username and password as your Google Drive Home player profile.</p>
+      <div id="f1-home-connected" hidden><div id="f1-home-account-summary"></div><button id="f1-home-disconnect" type="button">Disconnect account</button></div>
+      <form id="f1-home-signin">
+        <label for="f1-home-username">Home username</label>
+        <input id="f1-home-username" type="text" maxlength="20" minlength="3" autocomplete="username" required>
+        <label for="f1-home-password">Password</label>
+        <input id="f1-home-password" type="password" maxlength="128" minlength="8" autocomplete="current-password" required>
+        <button class="profile-save" type="submit" id="f1-home-connect">Connect account</button>
+      </form>
+      <div id="f1-home-status" role="status" aria-live="polite"></div>
+      <button id="f1-home-retry" type="button" hidden>Retry race sync</button>
+    </section>
     <div class="profile-actions">
       <button id="profile-cancel" type="button">Cancel</button>
       <button id="profile-save" class="profile-save" type="button">Save profile</button>
@@ -255,6 +269,98 @@ import { createRumbleModel, createRumblePlayer } from './src/rumble.mjs';
 import { VERSION } from './src/version.mjs';
 document.querySelector('.subtitle').textContent += ' · v' + VERSION;
 const $ = id => document.getElementById(id);
+const HOME_ACCOUNT_API = "https://hockey-multiplayer.onrender.com";
+const HOME_ACCOUNT_TOKEN_KEY = "homeAccountToken";
+let homeAccountToken = "";
+let homeAccountProfile = null;
+let homeGameSessionId = null;
+let homeGameStartPromise = null;
+let homeRaceReportedForCurrentSession = false;
+let homePendingRaceResult = null;
+let homeRaceSubmitPromise = null;
+try { homeAccountToken = sessionStorage.getItem(HOME_ACCOUNT_TOKEN_KEY) || ""; } catch {}
+async function homeAccountRequest(path, options = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (homeAccountToken && !options.anonymous) headers.Authorization = "Bearer " + homeAccountToken;
+  const response = await fetch(HOME_ACCOUNT_API + path, {
+    method: options.method || "GET", headers, cache: "no-store",
+    ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {})
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { const error = new Error(data.error || "Home account request failed (" + response.status + ")."); error.status = response.status; throw error; }
+  return data;
+}
+function setHomeAccountStatus(message, error = false) {
+  const status = $("f1-home-status"); if (!status) return;
+  status.textContent = message || ""; status.classList.toggle("error", !!error);
+}
+function renderHomeAccount() {
+  const connected = $("f1-home-connected"), form = $("f1-home-signin"), retry = $("f1-home-retry");
+  if (!connected || !form) return;
+  const signedIn = !!homeAccountToken && !!homeAccountProfile;
+  connected.hidden = !signedIn; form.hidden = signedIn;
+  if (signedIn) {
+    const p = homeAccountProfile;
+    $("f1-home-account-summary").textContent = "Connected as " + (p.username || p.name || "Player") + " · Level " + (p.level || 1) + " · " + Number(p.coins || 0).toLocaleString() + " Home Coins";
+  }
+  if (retry) retry.hidden = !homePendingRaceResult || !signedIn;
+}
+async function refreshHomeAccount() {
+  if (!homeAccountToken) { renderHomeAccount(); return; }
+  try {
+    const data = await homeAccountRequest("/account/me");
+    homeAccountProfile = data.profile || null; renderHomeAccount();
+  } catch (error) {
+    if (error.status === 401) {
+      homeAccountToken = ""; homeAccountProfile = null;
+      try { sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY); } catch {}
+      renderHomeAccount();
+    }
+    setHomeAccountStatus(error.message || "Could not load your Home account.", true);
+  }
+}
+async function ensureHomeF1Session() {
+  if (!homeAccountToken || !raceSession) return null;
+  if (homeGameSessionId) return homeGameSessionId;
+  if (homeGameStartPromise) return homeGameStartPromise;
+  homeGameStartPromise = (async () => {
+    const active = await homeAccountRequest("/account/game/active");
+    if (active.active) {
+      if (active.gameId !== "f1-simulator") throw new Error("Finish your other Home game session before syncing F1.");
+      homeGameSessionId = active.sessionId;
+    } else {
+      const started = await homeAccountRequest("/account/game/start", { method: "POST", body: { gameId: "f1-simulator" } });
+      homeGameSessionId = started.sessionId;
+    }
+    return homeGameSessionId;
+  })().finally(() => { homeGameStartPromise = null; });
+  return homeGameStartPromise;
+}
+async function submitHomePendingRaceResult() {
+  if (!homeAccountToken || !homePendingRaceResult) return;
+  if (homeRaceSubmitPromise) return homeRaceSubmitPromise;
+  homeRaceSubmitPromise = (async () => {
+    const sessionId = await ensureHomeF1Session();
+    if (!sessionId) return;
+    const response = await homeAccountRequest("/account/game/complete", {
+      method: "POST", body: { sessionId, score: 0, f1Result: homePendingRaceResult }
+    });
+    homeGameSessionId = null; homePendingRaceResult = null;
+    const latest = await homeAccountRequest("/account/me");
+    homeAccountProfile = latest.profile || homeAccountProfile;
+    renderHomeAccount();
+    setHomeAccountStatus("Race saved to Home · +" + (response.xpEarned || 0) + " XP · +" + (response.coinEarned || 0) + " Home Coins");
+  })().catch(error => {
+    setHomeAccountStatus((error.message || "Race progress could not sync.") + " Your result is kept here; you can retry.", true);
+    renderHomeAccount();
+  }).finally(() => { homeRaceSubmitPromise = null; });
+  return homeRaceSubmitPromise;
+}
+async function loadHomeAccount() {
+  await refreshHomeAccount();
+  if (homeAccountToken && sessionStarted && raceSession) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
+}
+document.addEventListener("message", () => {});
 const canvas = $('track');
 let sim, paused = true, overview = false, cockpit = false, previousTime = null, snapCamera = true;
 let sessionStarted = false, lastRenderAt = 0, lastHudUpdate = 0, fpsWindowStart = performance.now(), renderedFrames = 0, measuredFps = 0;
@@ -439,6 +545,30 @@ $('profile-save').addEventListener('click', async () => {
   previewProfilePhoto(pendingProfilePhoto !== undefined ? pendingProfilePhotoUrl : driverProfile.avatarUrl, name);
   if (photoSaved) $('profile-status').textContent = 'Profile saved on this device.';
 });
+$("f1-home-signin").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button = $("f1-home-connect"); button.disabled = true;
+  setHomeAccountStatus("Connecting to your Home player account…");
+  try {
+    const result = await homeAccountRequest("/account/login", { method: "POST", anonymous: true, body: {
+      username: $("f1-home-username").value.trim(), password: $("f1-home-password").value
+    }});
+    homeAccountToken = result.token; homeAccountProfile = result.profile || null;
+    try { sessionStorage.setItem(HOME_ACCOUNT_TOKEN_KEY, homeAccountToken); } catch {}
+    $("f1-home-password").value = ""; renderHomeAccount();
+    setHomeAccountStatus("Connected. F1 race results can now update your Home profile.");
+    if (sessionStarted && raceSession) await ensureHomeF1Session();
+    await submitHomePendingRaceResult();
+  } catch (error) { setHomeAccountStatus(error.message || "Could not connect your account.", true); }
+  finally { button.disabled = false; }
+});
+$("f1-home-disconnect").addEventListener("click", async () => {
+  try { await homeAccountRequest("/account/logout", { method: "POST", body: {} }); } catch {}
+  homeAccountToken = ""; homeAccountProfile = null; homeGameSessionId = null;
+  try { sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY); } catch {}
+  renderHomeAccount(); setHomeAccountStatus("Home account disconnected from this browser.");
+});
+$("f1-home-retry").addEventListener("click", submitHomePendingRaceResult);
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !$('driver-profile-modal').hidden) closeDriverProfile();
 });
@@ -552,6 +682,8 @@ function reset() {
     r.wheelAngle.fill(0);
   });
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
+  homeRaceReportedForCurrentSession = false;
+  if (sessionStarted && raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
 }
 // Paddle shift: switches your car (only) to the manual gearbox and takes you off
 // the autopilot; a refused shift (over-rev, mid-shift, gear 1/8, reverse) flashes the gear.
@@ -1162,6 +1294,19 @@ function frame(now) {
     // On autopilot the race's traffic-aware driver chooses the player's inputs.
     if (autopilot && !forwardRecovery) command = sim.entries[0].command ?? { throttle: 0, brake: 0, steer: 0 };
     timer.update(sim.car, { wallsOnly: assistOn });
+    if (raceSession && sim.finish.done && !homeRaceReportedForCurrentSession) {
+      const player = sim.classification().find(entry => entry.player);
+      if (player) {
+        homeRaceReportedForCurrentSession = true;
+        homePendingRaceResult = {
+          position: player.position, laps: player.laps, finished: !!player.finished && !player.dsq,
+          bestLapMs: timer.state.bestLap === null ? null : Math.round(timer.state.bestLap * 1000),
+          timeMs: player.total === null ? null : Math.round(player.total * 1000),
+          circuit: track.name || trackDisplayName
+        };
+        submitHomePendingRaceResult().catch(() => {});
+      }
+    }
   }
   if (audio) {
     // Quieter from the overview camera; silent while paused or muted.
@@ -1192,6 +1337,7 @@ function startSessionNow() {
   $('main-menu').hidden = true; $('pause-menu').hidden = true; $('mini-hud').hidden = false;
   document.body.classList.add('session-live'); document.body.classList.remove('race-paused');
   reset(); pause(false);
+  if (raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
 }
 function showMainMenu() {
   sessionStarted = false; pause(true);
@@ -1271,6 +1417,7 @@ document.querySelectorAll('#pause-controls [data-original-control]').forEach(but
   });
 });
 await loadDriverProfile();
+loadHomeAccount().catch(error => setHomeAccountStatus(error.message || "Home account is unavailable.", true));
 reset(); pause(true); resize();
 await nextPaint();
 setLoadingStage(circuitKey ? 'TRACK READY' : 'GAME READY', 'Ready to race', 'The simulator and circuit are ready', 100);
