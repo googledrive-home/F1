@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCar, step, wheelLoads, aeroMap, tireForce, relaxSlipAngle, engineTorque, shift, updateBody, tireTempGrip, updateTireTemp, tireWearGrip, updateTireWear, fitTires, carMass, newErsLap, TIRE_COMPOUNDS, Simulation, FIXED_DT }
+import { createCar, step, wheelLoads, aeroMap, tireForce, relaxSlipAngle, engineTorque, shift, updateBody, tireTempGrip, updateTireTemp, tireWearGrip, updateTireWear, tireWeatherGrip, fitTires, carMass, newErsLap, TIRE_COMPOUNDS, Simulation, FIXED_DT }
   from '../src/physics.mjs';
 
 const run = (car, seconds, input, surface) => {
@@ -806,4 +806,18 @@ test('a loose surface ({ grip, rolling }) ploughs: gravel slows a coasting car m
   assert.ok(onGravel < onGrass - 3, `gravel ${onGravel} vs grass ${onGrass}`);
   assert.equal(run(rollingCar(30), 0.1, {}, gravel).telemetry.wheels[0].rolling, 0.25);
   assert.ok(run(createCar(), 5, { throttle: 1 }, gravel).telemetry.speed > 5);
+});
+
+
+test('dry and wet tyre compounds interpolate grip as track wetness changes', () => {
+  near(tireWeatherGrip(TIRE_COMPOUNDS.medium, 0), 1);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.medium, 1), 0.65);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.intermediate, 0), 0.94);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.intermediate, 1), 1.02);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.wet, 0), 0.75);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.wet, 1), 1.08);
+  assert.ok(tireWeatherGrip(TIRE_COMPOUNDS.medium, 0.5) < tireWeatherGrip(TIRE_COMPOUNDS.intermediate, 0.5));
+  assert.ok(tireWeatherGrip(TIRE_COMPOUNDS.intermediate, 0.8) < tireWeatherGrip(TIRE_COMPOUNDS.wet, 0.8));
+  near(tireWeatherGrip(TIRE_COMPOUNDS.medium, -1), 1);
+  near(tireWeatherGrip(TIRE_COMPOUNDS.wet, 2), 1.08);
 });
