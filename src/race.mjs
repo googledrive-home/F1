@@ -5,7 +5,7 @@
 // telemetry: a close follower loses up to towDragLoss of its drag and
 // dirtyAirLoss of its downforce, decaying over wakeLength metres behind the
 // leader and wakeWidth metres either side of its centreline.
-import { step, createCar, carMass, fitTires, newErsLap, tireTempGrip, tireWearGrip, TIRE_COMPOUNDS, FIXED_DT, clamp } from './physics.mjs';
+import { step, createCar, carMass, fitTires, newErsLap, tireTempGrip, tireWearGrip, tireWeatherGrip, TIRE_COMPOUNDS, FIXED_DT, clamp } from './physics.mjs';
 import { createAutopilot, createCircuitAutopilot } from './autopilot.mjs';
 
 // AI path and traffic decisions are recalculated 20 times per second; physics remains 60 Hz.
@@ -421,7 +421,9 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       if (e.mistakeAt !== null && e.covered >= e.mistakeAt) { if (!e.pit) e.mistakeUntil = time + o.mistakeTime; e.mistakeAt = null; }
     }
     const pace = e.player ? 1 : e.form * (time < e.mistakeUntil ? o.mistakeLoss : 1);
+    const wetness = typeof o.weatherWetness === 'function' ? clamp(Number(o.weatherWetness()) || 0, 0, 1) : 0;
     const grip = pace * (1 - (1 - car.wake.downforce) * 0.45) * TIRE_COMPOUNDS[car.compound].grip
+      * tireWeatherGrip(TIRE_COMPOUNDS[car.compound], wetness)
       * Math.min(1, temp) * tireWearGrip(car.config, Math.max(...car.tireWear));
     const lookAhead = Math.max(o.lookAhead, o.followGap + 1.5 * speed * speed / (2 * o.followDecel));
     // Cars on the other side of the pit-lane line are separate traffic, except
