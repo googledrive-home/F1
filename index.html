@@ -504,6 +504,7 @@ function openDriverProfile() {
   $('profile-name-input').value = driverProfile.name;
   $('profile-status').textContent = '';
   previewProfilePhoto(driverProfile.avatarUrl, driverProfile.name);
+  refreshHomeAccountUi();
   $('driver-profile-modal').hidden = false;
   $('profile-name-input').focus();
 }
@@ -567,6 +568,41 @@ $('profile-save').addEventListener('click', async () => {
   previewProfilePhoto(pendingProfilePhoto !== undefined ? pendingProfilePhotoUrl : driverProfile.avatarUrl, name);
   if (photoSaved) $('profile-status').textContent = 'Profile saved on this device.';
 });
+
+$('home-account-connect').addEventListener('click', async () => {
+  const username = $('home-account-username').value.trim();
+  const password = $('home-account-password').value;
+  if (!username || !password) {
+    $('home-account-status').textContent = 'Enter your Home username and password.';
+    return;
+  }
+  $('home-account-connect').disabled = true;
+  $('home-account-status').textContent = 'Connecting…';
+  try {
+    const response = await fetch(HOME_ACCOUNT_API + '/account/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      cache: 'no-store'
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Could not sign in to Home.');
+    $('home-account-password').value = '';
+    await connectHomeAccountWithToken(result.token);
+  } catch (error) {
+    $('home-account-status').textContent = error.message || 'Could not connect your Home account.';
+  } finally {
+    $('home-account-connect').disabled = false;
+  }
+});
+
+$('home-account-disconnect').addEventListener('click', async () => {
+  try { await homeAccountRequest('/account/logout', { method: 'POST', body: {} }); } catch {}
+  sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY);
+  connectedHomeAccount = null;
+  refreshHomeAccountUi();
+});
+
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !$('driver-profile-modal').hidden) closeDriverProfile();
 });
@@ -1399,6 +1435,7 @@ document.querySelectorAll('#pause-controls [data-original-control]').forEach(but
   });
 });
 await loadDriverProfile();
+await initialiseHomeAccount();
 reset(); pause(true); resize();
 await nextPaint();
 setLoadingStage(circuitKey ? 'TRACK READY' : 'GAME READY', 'Ready to race', 'The simulator and circuit are ready', 100);
