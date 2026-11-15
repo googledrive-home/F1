@@ -61,3 +61,10 @@ Progress is stored locally and, when a Home account is connected, in the existin
 ## Custom racing team
 
 The driver-profile panel includes a custom team editor for team name, primary car colour, accent colour and helmet colour. The selected livery is applied to the player's car at the next simulator reload and saved with the Home cloud career when signed in. The existing car model and materials are reused; the opponent liveries remain unchanged.
+
+
+## Race replay
+
+A completed session can be reviewed from the pause menu. The recorder captures compact car pose, body movement, wheel speed, steering, DRS and weather snapshots at approximately 8 Hz, retaining up to eight minutes in memory.
+
+The replay viewer supports play/pause, timeline scrubbing, 0.5×/1×/2×/4× speed and the simulator's existing camera controls. It reuses the live Three.js car models and track rather than recording video files. Replay data is currently session-memory only and is not uploaded to Home cloud storage.
