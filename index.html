@@ -360,7 +360,6 @@ async function loadHomeAccount() {
   await refreshHomeAccount();
   if (homeAccountToken && sessionStarted && raceSession) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
 }
-document.addEventListener("message", () => {});
 const canvas = $('track');
 let sim, paused = true, overview = false, cockpit = false, previousTime = null, snapCamera = true;
 let sessionStarted = false, lastRenderAt = 0, lastHudUpdate = 0, fpsWindowStart = performance.now(), renderedFrames = 0, measuredFps = 0;
