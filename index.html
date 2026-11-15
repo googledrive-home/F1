@@ -248,6 +248,17 @@ body.session-live main{height:100vh}
         <button id="home-account-disconnect" type="button" hidden>Disconnect</button>
       </div>
     </section>
+    <section class="home-account-box" aria-label="Custom racing team">
+      <div class="home-account-heading">Custom racing team</div>
+      <p class="profile-local-note">Create your own team colours. Changes are saved with your Home career and applied when the simulator reloads.</p>
+      <div class="home-account-fields">
+        <label for="f1-team-name">Team name<input id="f1-team-name" type="text" maxlength="24" autocomplete="off" placeholder="Home Racing"></label>
+        <label for="f1-team-paint">Primary car colour<input id="f1-team-paint" type="color" value="#10233f"></label>
+        <label for="f1-team-accent">Accent colour<input id="f1-team-accent" type="color" value="#39e0ae"></label>
+        <label for="f1-team-helmet">Helmet colour<input id="f1-team-helmet" type="color" value="#f2bf5e"></label>
+      </div>
+      <div class="home-account-actions"><button id="f1-team-save" type="button">Save custom team</button></div>
+    </section>
     <div class="profile-actions">
       <button id="profile-cancel" type="button">Cancel</button>
       <button id="profile-save" class="profile-save" type="button">Save profile</button>
@@ -451,12 +462,29 @@ async function initialiseHomeAccount() {
 }
 
 const F1_PROGRESSION_KEY = 'agentiloop-f1-progression-v1';
+const F1_TEAM_KEY = 'agentiloop-f1-team-look';
+const F1_DEFAULT_TEAM = { name: 'Home Racing', paint: '#10233f', accent: '#39e0ae', helmet: '#f2bf5e' };
+function validTeamColor(value, fallback) { return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? String(value) : fallback; }
+function readLocalTeam() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(F1_TEAM_KEY) || 'null');
+    if (saved && typeof saved === 'object') return {
+      name: String(saved.name || F1_DEFAULT_TEAM.name).trim().slice(0, 24) || F1_DEFAULT_TEAM.name,
+      paint: validTeamColor(saved.paint, F1_DEFAULT_TEAM.paint),
+      accent: validTeamColor(saved.accent, F1_DEFAULT_TEAM.accent),
+      helmet: validTeamColor(saved.helmet, F1_DEFAULT_TEAM.helmet)
+    };
+  } catch {}
+  return { ...F1_DEFAULT_TEAM };
+}
+function teamColorNumber(value) { return Number.parseInt(String(value).replace('#', ''), 16) >>> 0; }
 const F1_SEASON_TRACKS = ['bahrain', 'monaco', 'silverstone', 'spa', 'monza'].filter(key => Object.hasOwn(CIRCUITS, key));
 const F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
 let progressionStore = {
   version: 1,
   career: { nextSeason: 1, activeSeason: null, seasons: [], stats: { starts: 0, wins: 0, podiums: 0, points: 0, championships: 0, bestLap: null } },
-  championship: { nextSeason: 1, activeSeason: null, seasons: [] }
+  championship: { nextSeason: 1, activeSeason: null, seasons: [] },
+  team: { ...F1_DEFAULT_TEAM }
 };
 let activeProgressionMode = new URLSearchParams(location.search).get('progression');
 let activeProgressionRoundIndex = Math.max(0, Number(new URLSearchParams(location.search).get('round')) || 0);
@@ -494,6 +522,13 @@ function cleanProgressionState(value) {
       fresh.career.stats = { ...fresh.career.stats, ...source.stats };
     }
   }
+  const team = value.team && typeof value.team === 'object' ? value.team : F1_DEFAULT_TEAM;
+  fresh.team = {
+    name: String(team.name || F1_DEFAULT_TEAM.name).trim().slice(0, 24) || F1_DEFAULT_TEAM.name,
+    paint: validTeamColor(team.paint, F1_DEFAULT_TEAM.paint),
+    accent: validTeamColor(team.accent, F1_DEFAULT_TEAM.accent),
+    helmet: validTeamColor(team.helmet, F1_DEFAULT_TEAM.helmet)
+  };
   return fresh;
 }
 
@@ -517,8 +552,10 @@ async function loadF1Progression() {
   if (connectedHomeAccount?.profile) {
     try {
       const cloud = await homeAccountRequest('/account/saves/f1-simulator');
-      if (cloud.save?.progression) progressionStore = cleanProgressionState(cloud.save.progression);
-      else if (localState) await persistF1Progression();
+      if (cloud.save?.progression) {
+        progressionStore = cleanProgressionState(cloud.save.progression);
+        try { localStorage.setItem(F1_TEAM_KEY, JSON.stringify(progressionStore.team)); } catch {}
+      } else if (localState) await persistF1Progression();
     } catch (error) {
       console.warn('F1 cloud career save unavailable; keeping this device save:', error.message);
     }
@@ -1248,6 +1285,13 @@ if (new URLSearchParams(location.search).get('car') !== 'procedural') {
   catch (err) { console.warn('rb22 car model failed to load', err); }
 }
 const buildCar = livery => carTemplate ? buildRB22Car(carTemplate, DEFAULT_CAR, livery) : buildF1Car(DEFAULT_CAR, livery);
+const playerTeamAppearance = readLocalTeam();
+const playerLivery = {
+  paint: teamColorNumber(playerTeamAppearance.paint),
+  accent: teamColorNumber(playerTeamAppearance.accent),
+  helmet: teamColorNumber(playerTeamAppearance.helmet),
+  index: 0
+};
 // Distant opponents switch to a five-part proxy with shared box and tyre geometry.
 // The full RB22 remains in use nearby; the proxy keeps the livery silhouette and animated wheels.
 const LOD_BOX = new THREE.BoxGeometry(1, 1, 1);
@@ -1282,7 +1326,7 @@ function buildOpponentProxy({ paint = 0x0e1626, accent = 0x39e0ae } = {}) {
   return { group, body, wheels, driver: [], drsFlap, mirrors: [], cockpitSides: [] };
 }
 const cars = [
-  { model: buildCar(), lowModel: buildOpponentProxy({ paint: 0x0e1626, accent: 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
+  { model: buildCar(playerLivery), lowModel: buildOpponentProxy({ paint: playerLivery.paint, accent: playerLivery.accent }), wheelAngle: [0, 0, 0, 0], lowActive: false },
   ...DEFAULT_GRID.map((spec, i) => ({
     model: buildCar({ paint: spec.color, accent: spec.accent, helmet: spec.accent, index: i + 1 }),
     lowModel: buildOpponentProxy({ paint: spec.color, accent: spec.accent }),
