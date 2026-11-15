@@ -38,3 +38,26 @@ Dry compounds lose grip as the surface gets wetter; intermediate and wet compoun
 Rain uses a small quality-scaled Three.js particle field. Cloud coverage, lighting and fog respond to rain while retaining the existing sky and time-of-day system.
 
 Weather grip coefficients are illustrative game parameters, not measured vehicle or tyre data. Tests are in `test/weather.test.mjs`.
+
+
+## Career and championship progression
+
+The existing main menu adds Quick Race, Career Season and Championship modes. Career and championship modes use a five-round calendar built from existing circuit definitions (Bahrain, Monaco, Silverstone, Spa-Francorchamps and Monza, rotated between seasons).
+
+After all drivers finish or retire, the player and AI classification is recorded:
+- Race position and finish status.
+- Points using a configurable 25–18–15–12–10–8–6–4–2–1 scale.
+- Wins and podiums.
+- Best lap and total race time where available.
+- Weather conditions for the round.
+- Per-driver season standings.
+
+Career mode keeps lifetime starts, wins, podiums, points, championships and best lap. A completed career season is archived, and a new season can be started. Championship mode runs a separate series.
+
+Progress is stored locally and, when a Home account is connected, in the existing private `/account/saves/f1-simulator` cloud-save slot. The Home website reads that save to show F1 career statistics and the team name on the player dashboard.
+
+**Race results in this first version are client-reported career records. They are not independently validated by the Home server and do not yet award platform XP or Credits.** A trusted race-result validation service is needed before competitive rewards or verified F1 leaderboards can use them.
+
+## Custom racing team
+
+The driver-profile panel includes a custom team editor for team name, primary car colour, accent colour and helmet colour. The selected livery is applied to the player's car at the next simulator reload and saved with the Home cloud career when signed in. The existing car model and materials are reused; the opponent liveries remain unchanged.
