@@ -48,6 +48,15 @@ header{position:absolute;top:0;left:0;right:0;z-index:20}main{height:100vh}.tag,
 .profile-photo-controls{display:flex;gap:8px;flex-wrap:wrap}
 .profile-photo-controls button{font-size:12px}
 .profile-local-note{font-size:11px;line-height:1.5;color:#91a4b6;margin:16px 0}
+.home-account-box{margin-top:14px;padding:13px;border:1px solid #ffffff20;border-radius:12px;background:#09131d}
+.home-account-heading{font-size:10px;font-weight:800;letter-spacing:.13em;color:#6fffc3;text-transform:uppercase}
+#home-account-status{font-size:11px;line-height:1.55;color:#c3d0db;margin:8px 0}
+.home-account-fields{display:grid;gap:8px}
+.home-account-fields[hidden],#home-account-disconnect[hidden]{display:none}
+.home-account-fields label{display:grid;gap:5px;font-size:10px;color:#91a4b6}
+.home-account-fields input{width:100%;padding:9px 10px;border-radius:8px;border:1px solid #ffffff2b;background:#08111a;color:#e9f0f6;font:inherit}
+.home-account-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.home-account-actions button{font-size:11px}
 .profile-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .profile-save{background:#6fffc3;color:#07131b;border-color:#6fffc3;font-weight:750}
 #profile-status{min-height:18px;margin-top:12px;color:#6fffc3;font-size:12px}
@@ -224,7 +233,19 @@ body.session-live main{height:100vh}
       <label for="profile-name-input">Driver name</label>
       <input id="profile-name-input" type="text" maxlength="24" autocomplete="nickname" placeholder="Enter your driver name">
     </div>
-    <p class="profile-local-note">Your profile picture and name are saved in this browser on this device. They are not uploaded to a server or shared between devices.</p>
+    <p class="profile-local-note" id="profile-local-note">Your profile picture and name are saved in this browser on this device.</p>
+    <section class="home-account-box" aria-label="Home player account">
+      <div class="home-account-heading">Home gaming account</div>
+      <p id="home-account-status" role="status" aria-live="polite">Not connected. Open F1 from Google Drive Home to connect automatically, or sign in below.</p>
+      <div class="home-account-fields" id="home-account-fields">
+        <label for="home-account-username">Home username<input id="home-account-username" type="text" maxlength="20" autocomplete="username" placeholder="Your Home username"></label>
+        <label for="home-account-password">Home password<input id="home-account-password" type="password" maxlength="128" autocomplete="current-password" placeholder="Your Home password"></label>
+      </div>
+      <div class="home-account-actions">
+        <button id="home-account-connect" type="button">Connect Home account</button>
+        <button id="home-account-disconnect" type="button" hidden>Disconnect</button>
+      </div>
+    </section>
     <div class="profile-actions">
       <button id="profile-cancel" type="button">Cancel</button>
       <button id="profile-save" class="profile-save" type="button">Save profile</button>
