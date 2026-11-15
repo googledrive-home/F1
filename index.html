@@ -475,7 +475,21 @@ function cleanProgressionState(value) {
     if (!source || typeof source !== 'object') continue;
     fresh[mode].nextSeason = Math.max(1, Math.floor(Number(source.nextSeason) || 1));
     fresh[mode].seasons = Array.isArray(source.seasons) ? source.seasons.slice(-10) : [];
-    if (source.activeSeason && typeof source.activeSeason === 'object') fresh[mode].activeSeason = source.activeSeason;
+    if (source.activeSeason && typeof source.activeSeason === 'object') {
+      const savedSeason = source.activeSeason;
+      const rounds = Array.isArray(savedSeason.rounds) ? savedSeason.rounds.filter(round =>
+        round && Object.hasOwn(CIRCUITS, round.circuitKey)
+      ).slice(0, 10) : [];
+      if (rounds.length) {
+        fresh[mode].activeSeason = {
+          ...savedSeason,
+          rounds,
+          currentRound: Math.max(0, Math.min(rounds.length, Math.floor(Number(savedSeason.currentRound) || 0))),
+          driverStandings: savedSeason.driverStandings && typeof savedSeason.driverStandings === 'object' ? savedSeason.driverStandings : {},
+          status: savedSeason.status === 'completed' ? 'completed' : 'active'
+        };
+      }
+    }
     if (mode === 'career' && source.stats && typeof source.stats === 'object') {
       fresh.career.stats = { ...fresh.career.stats, ...source.stats };
     }
@@ -562,10 +576,16 @@ function updateProgressionMenu() {
   const season = getActiveSeason(mode);
   const round = season.rounds[season.currentRound];
   const circuitName = CIRCUITS[round.circuitKey]?.name || round.circuitKey;
-  const storage = connectedHomeAccount?.profile ? 'Progress syncs to your Home account.' : 'Progress saves on this device. Connect Home in Driver profile to sync it.';
+  const storage = connectedHomeAccount?.profile ? 'Synced to your Home account.' : 'Saved on this device. Connect Home in Driver profile to sync it.';
+  const playerStanding = season.driverStandings?.[driverProfile.name];
+  const standingText = playerStanding ? ' · Your points: ' + playerStanding.points : '';
+  const careerStats = progressionStore.career.stats;
+  const careerText = mode === 'career'
+    ? ' · Career: ' + careerStats.wins + ' wins, ' + careerStats.podiums + ' podiums, ' + careerStats.championships + ' titles'
+    : '';
   summary.textContent = (mode === 'career' ? 'Career' : 'Championship') +
-    ' · Season ' + season.seasonNumber + ' · Round ' + (round.number) + '/' + season.rounds.length +
-    ' · ' + circuitName + ' · ' + storage;
+    ' · Season ' + season.seasonNumber + ' · Round ' + round.number + '/' + season.rounds.length +
+    ' · ' + circuitName + standingText + careerText + ' · ' + storage;
   $('menu-track-select').value = round.circuitKey;
   start.textContent = (mode === 'career' ? 'CAREER' : 'CHAMPIONSHIP') + ' · ROUND ' + round.number + ' →';
 }
