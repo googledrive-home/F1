@@ -942,6 +942,7 @@ function updateWeather(now = performance.now()) {
   weatherWetness += (target.wetness - weatherWetness) * wetBlend;
   weatherRainIntensity += (target.rain - weatherRainIntensity) * rainBlend;
   weatherLabel = target.label;
+  sim?.setWeather?.(weatherWetness);
 }
 function cycleWeather() {
   weatherMode = WEATHER_MODES[(WEATHER_MODES.indexOf(weatherMode) + 1) % WEATHER_MODES.length];
