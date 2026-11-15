@@ -166,6 +166,8 @@ body.session-live main{height:100vh}
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
+      <div class="menu-field"><label for="menu-weather">Weather</label><select id="menu-weather"><option value="clear">Clear</option><option value="cloudy">Cloudy</option><option value="light-rain">Light rain</option><option value="heavy-rain">Heavy rain</option><option value="changing">Changing conditions</option></select></div>
+      <div class="menu-field"><label for="menu-tyre">Starting tyre</label><select id="menu-tyre"><option value="soft">Soft · dry</option><option value="medium">Medium · dry</option><option value="hard">Hard · dry</option><option value="intermediate">Intermediate · mixed wet</option><option value="wet">Full wet</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
       <div class="menu-field"><label for="menu-quality">Graphics quality</label><select id="menu-quality"><option value="high">High graphics</option><option value="balanced" selected>Balanced</option><option value="performance">Performance</option><option value="manual">Manual</option></select></div>
@@ -213,6 +215,7 @@ body.session-live main{height:100vh}
   <div class="mini-stat"><strong id="mini-speed">0</strong><small id="mini-unit">km/h</small></div>
   <div class="mini-stat"><strong id="mini-gear">1</strong><small>Gear</small></div>
   <div class="mini-stat"><strong id="mini-lap">OUT</strong><small>Lap</small></div>
+  <div class="mini-stat"><strong id="mini-weather">DRY</strong><small>Weather</small></div>
   <div class="mini-stat"><strong id="mini-fps">—</strong><small>FPS</small></div>
   <button id="pause-open" type="button">Ⅱ PAUSE</button>
 </div>
@@ -626,7 +629,32 @@ await nextPaint();
 const { surfaceAt, barrierAt } = track;
 const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined);
 const raceSession = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
-const requestedOpponentCount = Number.parseInt(pageQuery.get('opponents') || String(DEFAULT_GRID.length), 10);
+const WEATHER_MODES = new Set(['clear', 'cloudy', 'light-rain', 'heavy-rain', 'changing']);
+let weatherMode = WEATHER_MODES.has(pageQuery.get('weather')) ? pageQuery.get('weather') : 'clear';
+let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
+function weatherTargets() {
+  if (weatherMode === 'changing') {
+    const phase = weatherElapsed % 240;
+    if (phase < 55) return { wetness: 0, rain: 0, label: 'Dry' };
+    if (phase < 125) return { wetness: 0.38, rain: 0.38, label: 'Light rain' };
+    if (phase < 185) return { wetness: 0.88, rain: 0.82, label: 'Heavy rain' };
+    return { wetness: 0.38, rain: 0.3, label: 'Light rain' };
+  }
+  return ({
+    clear: { wetness: 0, rain: 0, label: 'Dry' },
+    cloudy: { wetness: 0.04, rain: 0, label: 'Cloudy' },
+    'light-rain': { wetness: 0.38, rain: 0.38, label: 'Light rain' },
+    'heavy-rain': { wetness: 0.88, rain: 0.82, label: 'Heavy rain' }
+  })[weatherMode] || { wetness: 0, rain: 0, label: 'Dry' };
+}
+function updateWeather(delta) {
+  if (delta > 0) weatherElapsed += delta;
+  const target = weatherTargets(), blendWet = Math.min(1, Math.max(0, delta) / 42), blendRain = Math.min(1, Math.max(0, delta) / 8);
+  weatherWetness += (target.wetness - weatherWetness) * blendWet;
+  weatherRain += (target.rain - weatherRain) * blendRain;
+  weatherLabel = target.label;
+  for (const entry of sim.entries) entry.car.weatherWetness = weatherWetness;
+}const requestedOpponentCount = Number.parseInt(pageQuery.get('opponents') || String(DEFAULT_GRID.length), 10);
 let selectedOpponentCount = Number.isFinite(requestedOpponentCount) ? Math.max(1, Math.min(DEFAULT_GRID.length, requestedOpponentCount)) : DEFAULT_GRID.length;
 let opponentCount = raceSession ? selectedOpponentCount : 0;
 let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = opponentCount > 0;
@@ -682,7 +710,7 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
-    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
+    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, options: { weatherWetness: () => weatherWetness }, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
   wearSkins(cars.map((_, i) => i));
@@ -840,7 +868,26 @@ scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
 const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode, qualityScale: performanceScale }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
-// Real circuits span kilometres: see the far side of the layout from the overview.
+const rainPosition = new Float32Array(180 * 3);
+for (let i = 0; i < 180; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 50; rainPosition[i * 3 + 1] = 4 + Math.random() * 15; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 50; }
+const rainGeometry = new THREE.BufferGeometry(); rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPosition, 3));
+const rainMaterial = new THREE.PointsMaterial({ color: 0xc6dce8, size: 0.085, transparent: true, opacity: 0.3, depthWrite: false, sizeAttenuation: true });
+const rainPoints = new THREE.Points(rainGeometry, rainMaterial); rainPoints.frustumCulled = false; rainPoints.visible = false; world.add(rainPoints);
+function updateWeatherVisuals(delta) {
+  rainPoints.visible = weatherRain > 0.015;
+  rainMaterial.opacity = 0.12 + weatherRain * 0.28;
+  if (!rainPoints.visible || delta <= 0) return;
+  const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (19 + weatherRain * 12) * delta;
+  for (let i = 0; i < 180; i++) {
+    const k = i * 3; positions[k + 1] -= fall;
+    if (positions[k + 1] < 0) {
+      positions[k] = car.x + (Math.random() - 0.5) * 50;
+      positions[k + 1] = 9 + Math.random() * 14;
+      positions[k + 2] = -car.y + (Math.random() - 0.5) * 50;
+    }
+  }
+  rainGeometry.attributes.position.needsUpdate = true;
+}// Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
 // Racing-line chevrons (chevrons.mjs, after the RISE sim's): the speed plan of the
 // autopilot that drives your car, rebuilt when a reset brings a new one.
@@ -1251,6 +1298,7 @@ function render(dt = 0, now = performance.now()) {
   $('mini-unit').textContent = mph ? 'mph' : 'km/h';
   $('mini-gear').textContent = c.gear < 0 ? 'R' : String(c.gear);
   $('mini-lap').textContent = ts.started ? `L${ts.lap}` : 'OUT';
+  $('mini-weather').textContent = weatherWetness > 0.65 ? 'WET' : weatherWetness > 0.12 ? 'DAMP' : weatherLabel === 'Cloudy' ? 'CLOUD' : 'DRY';
   $('mini-fps').textContent = measuredFps ? String(measuredFps) : '—';
 }
 function frame(now) {
@@ -1302,9 +1350,11 @@ function frame(now) {
     // send a forward-path autopilot's throttle through a reverse gearbox.
     const forwardRecovery = autopilot && sim.car.gear < 0;
     if (forwardRecovery) command = { throttle: 0, brake: 1, steer: 0, reverse: false };
+    updateWeather(dt);
     sim.advance((now - previousTime) / 1000, command, surfaceAt, barrierAt);
     // On autopilot the race's traffic-aware driver chooses the player's inputs.
     if (autopilot && !forwardRecovery) command = sim.entries[0].command ?? { throttle: 0, brake: 0, steer: 0 };
+    updateWeatherVisuals(dt);
     timer.update(sim.car, { wallsOnly: assistOn });
     if (raceSession && sim.finish.done && !homeRaceReportedForCurrentSession) {
       const player = sim.classification().find(entry => entry.player);
@@ -1386,6 +1436,8 @@ function launchFromMenu() {
   }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
+  const weather = $('menu-weather').value; if (WEATHER_MODES.has(weather)) params.set('weather', weather); else params.delete('weather');
+  const tyre = $('menu-tyre').value; if (TIRE_COMPOUNDS[tyre]) params.set('tyre', tyre); else params.delete('tyre');
   const quality = $('menu-quality').value;
   if (quality === 'balanced') params.delete('quality'); else params.set('quality', quality);
   if (quality === 'manual') params.set('scale', (Number($('menu-quality-slider').value) / 100).toFixed(2));
@@ -1400,6 +1452,8 @@ function launchFromMenu() {
 }
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
+$('menu-weather').value = weatherMode;
+$('menu-tyre').value = TIRE_COMPOUNDS[pageQuery.get('tyre')] ? pageQuery.get('tyre') : 'medium';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
 $('menu-opponents').value = String(selectedOpponentCount);
 $('menu-opponents').disabled = $('menu-session-type').value === 'practice';
