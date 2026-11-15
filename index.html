@@ -112,6 +112,19 @@ body.session-live main{height:100vh}
 #manual-quality-value{float:right;color:#6fffc3;font-variant-numeric:tabular-nums}
 #manual-quality-note{margin:0;color:#8298a9;font-size:10px;line-height:1.5}
 
+
+/* Home account connection, kept within the existing F1 profile-dialog design. */
+.home-account-panel{margin-top:18px;padding:14px;border:1px solid #ffffff24;border-radius:10px;background:#09131d}
+.home-account-panel h3{margin:0 0 6px;color:#e9f0f6;font-size:14px;letter-spacing:.02em}
+.home-account-panel>p{margin:0 0 12px;color:#91a4b6;font-size:11px;line-height:1.5}
+.home-account-panel form{display:grid;gap:8px}
+.home-account-panel label{font-size:10px;color:#91a4b6;letter-spacing:.1em;text-transform:uppercase}
+.home-account-panel input{width:100%;padding:10px 11px;border:1px solid #ffffff2b;border-radius:7px;background:#08111a;color:#e9f0f6;font:inherit;outline:none}
+.home-account-panel input:focus{border-color:#6fffc3;box-shadow:0 0 0 3px #6fffc322}
+.home-account-panel button{margin-top:8px;font-size:11px}
+#f1-home-account-summary{padding:9px 10px;border-radius:8px;background:#ffffff0a;color:#c5d4de;font-size:11px;line-height:1.5}
+#f1-home-status{min-height:18px;margin-top:9px;color:#6fffc3;font-size:10px;line-height:1.5}
+#f1-home-status.error{color:#ff8e86}
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
