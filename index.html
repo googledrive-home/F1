@@ -404,6 +404,7 @@ async function connectHomeAccountWithToken(token) {
       refreshDriverProfileUi();
     }
     refreshHomeAccountUi();
+    await loadF1Progression();
     return connectedHomeAccount;
   } catch (error) {
     sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY);
@@ -893,6 +894,7 @@ function reset() {
   // the two-compound rule applies (races of 2+ laps).
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
+  raceProgressionRecorded = false;
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
     runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
@@ -1564,6 +1566,10 @@ function render(dt = 0, now = performance.now()) {
   $('mini-gear').textContent = c.gear < 0 ? 'R' : String(c.gear);
   $('mini-lap').textContent = ts.started ? `L${ts.lap}` : 'OUT';
   $('mini-fps').textContent = measuredFps ? String(measuredFps) : '—';
+  recordProgressionResult().catch(error => {
+    console.error('Could not save F1 progression:', error);
+    $('status').textContent = 'Race finished, but career progress could not be saved.';
+  });
 }
 function frame(now) {
   const dt = previousTime !== null && !paused ? Math.min((now - previousTime) / 1000, 0.1) : 0;
@@ -1673,11 +1679,28 @@ function openMainMenuFromPause() {
 }
 function launchFromMenu() {
   const params = new URLSearchParams(location.search);
-  const selectedTrack = $('menu-track-select').value;
+  const progression = $('menu-progression').value;
+  let selectedTrack = $('menu-track-select').value;
+  if (progression !== 'quick') {
+    const season = getActiveSeason(progression);
+    activeProgressionMode = progression;
+    activeProgressionRoundIndex = season.currentRound;
+    const round = season.rounds[activeProgressionRoundIndex];
+    selectedTrack = round.circuitKey;
+    $('menu-track-select').value = selectedTrack;
+    params.set('progression', progression);
+    params.set('round', String(activeProgressionRoundIndex));
+    persistF1Progression().catch(error => console.warn('Could not save new season yet:', error.message));
+  } else {
+    activeProgressionMode = null;
+    activeProgressionRoundIndex = 0;
+    params.delete('progression');
+    params.delete('round');
+  }
   if (selectedTrack) params.set('track', selectedTrack); else params.delete('track');
-  const mode = $('menu-session-type').value;
+  const sessionMode = progression === 'quick' ? $('menu-session-type').value : 'race';
   params.delete('race'); params.delete('practice'); params.delete('opponents');
-  if (mode === 'practice') params.set('practice', '1');
+  if (sessionMode === 'practice') params.set('practice', '1');
   else {
     if (selectedTrack) params.set('race', '1');
     const count = Math.max(1, Math.min(DEFAULT_GRID.length, Number($('menu-opponents').value) || DEFAULT_GRID.length));
@@ -1700,9 +1723,11 @@ function launchFromMenu() {
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
+$('menu-progression').value = ['career', 'championship'].includes(pageQuery.get('progression')) ? pageQuery.get('progression') : 'quick';
 $('menu-opponents').value = String(selectedOpponentCount);
-$('menu-opponents').disabled = $('menu-session-type').value === 'practice';
-$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice'; });
+$('menu-opponents').disabled = $('menu-session-type').value === 'practice' || $('menu-progression').value !== 'quick';
+$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice' || $('menu-progression').value !== 'quick'; });
+$('menu-progression').addEventListener('change', updateProgressionMenu);
 $('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
 $('menu-quality').value = qualityMode;
 $('menu-quality-slider').value = String(Math.round(performanceScale * 100));
@@ -1729,6 +1754,8 @@ document.querySelectorAll('#pause-controls [data-original-control]').forEach(but
 });
 await loadDriverProfile();
 await initialiseHomeAccount();
+await loadF1Progression();
+updateProgressionMenu();
 reset(); pause(true); resize();
 await nextPaint();
 setLoadingStage(circuitKey ? 'TRACK READY' : 'GAME READY', 'Ready to race', 'The simulator and circuit are ready', 100);
