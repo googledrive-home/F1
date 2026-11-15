@@ -1,6 +1,14 @@
 name: Deploy F1 to GitHub Pages
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - "src/**"
+      - "test/**"
+      - ".github/workflows/deploy-pages.yml"
   push:
     branches:
       - main
@@ -36,6 +44,7 @@ jobs:
           Path("/tmp/f1-app.mjs").write_text(modules[0])
           PY
           node --check /tmp/f1-app.mjs
+          node --check src/physics.mjs
           node --check src/world3d.mjs
           node --check src/mirror3d.mjs
           node --check src/race.mjs
@@ -54,6 +63,7 @@ jobs:
         run: node --test test/*.test.mjs
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
