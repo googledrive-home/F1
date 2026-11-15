@@ -340,6 +340,113 @@ function refreshDriverProfileUi() {
   showProfileImages(driverProfile.avatarUrl);
   if (sim?.entries?.[0]) sim.entries[0].name = driverProfile.name;
 }
+const HOME_ACCOUNT_API = 'https://hockey-multiplayer.onrender.com';
+const HOME_ACCOUNT_TOKEN_KEY = 'home-account-session';
+let connectedHomeAccount = null;
+
+async function homeAccountRequest(endpoint, options = {}) {
+  const token = sessionStorage.getItem(HOME_ACCOUNT_TOKEN_KEY) || '';
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const response = await fetch(HOME_ACCOUNT_API + endpoint, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    cache: 'no-store'
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Home account service is unavailable.');
+  return result;
+}
+
+function refreshHomeAccountUi() {
+  const status = $('home-account-status');
+  const fields = $('home-account-fields');
+  const connect = $('home-account-connect');
+  const disconnect = $('home-account-disconnect');
+  const nameInput = $('profile-name-input');
+  const note = $('profile-local-note');
+  if (!status || !fields || !connect || !disconnect) return;
+
+  if (connectedHomeAccount?.profile) {
+    const profile = connectedHomeAccount.profile;
+    const credits = Number(connectedHomeAccount.currency?.balance ?? profile.currencyBalance ?? 0);
+    status.textContent = 'Connected as ' + profile.username + ' · Level ' + profile.level +
+      ' · ' + Number(profile.xp || 0).toLocaleString() + ' XP · ' + credits.toLocaleString() + ' Credits';
+    fields.hidden = true;
+    connect.hidden = true;
+    disconnect.hidden = false;
+    if (nameInput) {
+      nameInput.value = profile.username;
+      nameInput.disabled = true;
+    }
+    if (note) note.textContent = 'Your driver name is linked to your Home account. Your profile picture remains saved on this device.';
+  } else {
+    status.textContent = 'Not connected. Open F1 from Google Drive Home to connect automatically, or sign in below.';
+    fields.hidden = false;
+    connect.hidden = false;
+    disconnect.hidden = true;
+    if (nameInput) nameInput.disabled = false;
+    if (note) note.textContent = 'Your profile picture and name are saved in this browser on this device.';
+  }
+}
+
+async function connectHomeAccountWithToken(token) {
+  sessionStorage.setItem(HOME_ACCOUNT_TOKEN_KEY, token);
+  try {
+    connectedHomeAccount = await homeAccountRequest('/account/me');
+    const profile = connectedHomeAccount.profile;
+    if (profile?.username) {
+      driverProfile.name = profile.username;
+      try { localStorage.setItem(PROFILE_NAME_KEY, profile.username); } catch {}
+      refreshDriverProfileUi();
+    }
+    refreshHomeAccountUi();
+    return connectedHomeAccount;
+  } catch (error) {
+    sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY);
+    connectedHomeAccount = null;
+    refreshHomeAccountUi();
+    throw error;
+  }
+}
+
+async function initialiseHomeAccount() {
+  const params = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const handoffCode = params.get('home_code');
+
+  if (handoffCode) {
+    // The one-time code is in the URL fragment, which is not sent to the server.
+    // Remove it from browser history before exchanging it.
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const response = await fetch(HOME_ACCOUNT_API + '/account/bridge/exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: handoffCode }),
+        cache: 'no-store'
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Could not connect the Home account.');
+      await connectHomeAccountWithToken(result.token);
+      $('profile-status').textContent = 'Connected to your Home account.';
+    } catch (error) {
+      $('home-account-status').textContent = error.message || 'Could not connect your Home account.';
+    }
+    return;
+  }
+
+  if (sessionStorage.getItem(HOME_ACCOUNT_TOKEN_KEY)) {
+    try {
+      connectedHomeAccount = await homeAccountRequest('/account/me');
+    } catch {
+      sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY);
+      connectedHomeAccount = null;
+    }
+  }
+  refreshHomeAccountUi();
+}
+
 function previewProfilePhoto(url, name) {
   const initial = profileInitial(name);
   $('profile-avatar-initial').textContent = initial;
