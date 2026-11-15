@@ -1273,7 +1273,7 @@ function drawMinimap() {
 }
 function render(dt = 0, now = performance.now()) {
   const c = sim.car;
-  fadeTime(); updateChevrons(); placeScene(dt); world.userData.update?.(dt);
+  fadeTime(); applyWeatherAtmosphere(dt); updateChevrons(); placeScene(dt); world.userData.update?.(dt);
   renderedFrames++;
   if (now - fpsWindowStart >= 1000) {
     measuredFps = Math.round(renderedFrames * 1000 / (now - fpsWindowStart));
@@ -1352,7 +1352,7 @@ function render(dt = 0, now = performance.now()) {
   const start = sim.start, me = sim.entries[0];
   // Tyres and pit stop: compound, most worn tire, request, stop in progress.
   const worn = Math.max(...c.tireWear);
-  $('pit-info').innerHTML = `${tyreBadge(c.compound)}${title(c.compound)} · ${(worn * 100).toFixed(1)}% worn${me.stops.length ? ` · ${me.stops.length} stop${me.stops.length > 1 ? 's' : ''}` : ''}${me.pitRequest ? ` · Box: ${title(me.pitRequest)}` : ''}${c.fuel != null ? ` · Fuel ${c.fuel.toFixed(1)} kg` : ''}${drsNote(me)}`;
+  $('pit-info').innerHTML = `${tyreBadge(c.compound)}${title(c.compound)} · ${(worn * 100).toFixed(1)}% worn${me.stops.length ? ` · ${me.stops.length} stop${me.stops.length > 1 ? 's' : ''}` : ''}${me.pitRequest ? ` · Box: ${title(me.pitRequest)}` : ''}${c.fuel != null ? ` · Fuel ${c.fuel.toFixed(1)} kg` : ''} · ${weatherLabel}${weatherWetness > 0.08 ? ` (${Math.round(weatherWetness * 100)}% wet)` : ''}${drsNote(me)}`;
   const lane = sim.inPitLane(c), service = me.pit?.phase === 'service' ? me.pit : null;
   const pitNote = c.fuel === 0 ? 'Out of fuel · engine starved' : service ? `Pit stop · fitting ${title(service.compound)} · ${Math.max(0, sim.time - service.begin).toFixed(1)} s`
     : lane ? `Pit lane · ${Math.round(sim.pit.speedLimit * 3.6)} km/h limiter${me.pitVisit?.speeding ? ` · speeding +${sim.options.pitSpeedingPenalty} s` : !me.pitVisit?.served && me.pit?.phase !== 'out' ? ' · stop in your box (green)' : ''}`
@@ -1373,6 +1373,7 @@ function render(dt = 0, now = performance.now()) {
 }
 function frame(now) {
   const dt = previousTime !== null && !paused ? Math.min((now - previousTime) / 1000, 0.1) : 0;
+  updateWeather(now);
   gamepadTakeover();
   // Gamepad buttons: Y pause / resume, Menu (Start) HUD, B camera, X full screen, A assist, Back (View) reset.
   if (gamepadPressed(3) && sessionStarted) (paused ? hidePauseMenu() : showPauseMenu());
