@@ -1,6 +1,9 @@
 name: Deploy F1 to GitHub Pages
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -54,6 +57,7 @@ jobs:
         run: node --test test/*.test.mjs
 
   deploy:
+    if: github.event_name == 'push'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
