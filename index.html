@@ -162,6 +162,7 @@ body.session-live main{height:100vh}
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
+      <div class="menu-field"><label for="menu-progression">Progression</label><select id="menu-progression"><option value="quick">Quick race</option><option value="career">Career season</option><option value="championship">Championship</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
       <div class="menu-field"><label for="menu-quality">Graphics quality</label><select id="menu-quality"><option value="high">High graphics</option><option value="balanced" selected>Balanced</option><option value="performance">Performance</option><option value="manual">Manual</option></select></div>
@@ -171,6 +172,7 @@ body.session-live main{height:100vh}
         <p id="manual-quality-note">Lower values reduce scenery density and render resolution; higher values increase detail.</p>
       </div>
     </div>
+    <p id="progression-summary" class="menu-hint" aria-live="polite">Quick race: select a circuit and start driving.</p>
     <div class="overlay-actions">
       <button id="start-session" class="overlay-btn primary" type="button">START SESSION →</button>
       <button id="menu-profile" class="overlay-btn" type="button">Driver profile</button>
