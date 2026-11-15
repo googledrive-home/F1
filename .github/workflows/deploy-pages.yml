@@ -42,6 +42,7 @@ jobs:
           node --check src/world3d.mjs
           node --check src/mirror3d.mjs
           node --check src/race.mjs
+          node --check src/physics.mjs
 
   test:
     needs: validate
