@@ -68,3 +68,8 @@ The driver-profile panel includes a custom team editor for team name, primary ca
 A completed session can be reviewed from the pause menu. The recorder captures compact car pose, body movement, wheel speed, steering, DRS and weather snapshots at approximately 8 Hz, retaining up to eight minutes in memory.
 
 The replay viewer supports play/pause, timeline scrubbing, 0.5×/1×/2×/4× speed and the simulator's existing camera controls. It reuses the live Three.js car models and track rather than recording video files. Replay data is currently session-memory only and is not uploaded to Home cloud storage.
+
+
+## Replay recording finish boundary
+
+Replay recording stops after capturing the first snapshot in which every driver has finished or retired. The eight-minute in-memory buffer therefore does not keep filling with post-race movement.
