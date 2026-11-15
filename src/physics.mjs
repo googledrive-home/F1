@@ -82,13 +82,21 @@ export const DEFAULT_CAR = Object.freeze({
   // (the balance moves forward). Where it may open is up to race.mjs.
   drsDragLoss: 0.12, drsDownforceLoss: 0.1, drsRate: 4, drsBrake: 0.05,
 });
-// Dry compounds (illustrative): peak-grip multiplier and wear-rate multiplier
-// relative to the medium. Softer rubber grips more and wears faster.
+// Tyre response factors are illustrative gameplay parameters, not measured data.
+// wetGrip is the fractional grip change at full standing water: dry compounds lose
+// grip while intermediate and wet compounds gain it.
 export const TIRE_COMPOUNDS = Object.freeze({
-  soft: Object.freeze({ grip: 1.015, wear: 2 }),
-  medium: Object.freeze({ grip: 1, wear: 1 }),
-  hard: Object.freeze({ grip: 0.985, wear: 0.55 }),
+  soft: Object.freeze({ grip: 1.015, wear: 2, wetGrip: -0.28 }),
+  medium: Object.freeze({ grip: 1, wear: 1, wetGrip: -0.24 }),
+  hard: Object.freeze({ grip: 0.985, wear: 0.55, wetGrip: -0.20 }),
+  intermediate: Object.freeze({ grip: 0.965, wear: 0.9, wetGrip: 0.10 }),
+  wet: Object.freeze({ grip: 0.925, wear: 0.82, wetGrip: 0.22 }),
 });
+export function weatherGripMultiplier(compoundName, wetness = 0) {
+  const compound = TIRE_COMPOUNDS[compoundName];
+  if (!compound) throw new RangeError(`Unknown tire compound: ${compoundName}`);
+  return Math.max(0.5, 1 + (compound.wetGrip ?? 0) * clamp(Number(wetness) || 0, 0, 1));
+}
 export const FIXED_DT = 1 / 60;
 export const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const RPM = 60 / (2 * Math.PI);
@@ -486,11 +494,13 @@ export function step(car, input = {}, dt = FIXED_DT, surfaceAt = () => 1, barrie
     const worldX = car.x + x * cos - y * sin;
     const worldY = car.y + x * sin + y * cos;
     const under = surfaceAt(worldX, worldY), grip = clamp(under.grip ?? under, 0, 2), rolling = under.rolling ?? 0;
+    const wetness = clamp(Number(under.wetness) || 0, 0, 1);
     const temp = car.tireTemp[i], tempGrip = tireTempGrip(c, temp), wearGrip = tireWearGrip(c, car.tireWear[i]);
     const compound = TIRE_COMPOUNDS[car.compound ?? c.tireCompound];
+    const weatherGrip = weatherGripMultiplier(car.compound ?? c.tireCompound, wetness);
     const kinematicSlip = steadySlipAngle(wheelV, wheelU);
     car.slipAngle[i] = relaxSlipAngle(car.slipAngle[i], kinematicSlip, Math.hypot(wheelU, wheelV), c, dt);
-    const tire = tireForce(demand, wheelV, wheelU, loads[i], grip * compound.grip * tempGrip * wearGrip, c, dt, car.slipAngle[i],
+    const tire = tireForce(demand, wheelV, wheelU, loads[i], grip * compound.grip * weatherGrip * tempGrip * wearGrip, c, dt, car.slipAngle[i],
       (front ? c.corneringStiffness : c.rearCorneringStiffness)
         * Math.pow(Math.max(loads[i], 1) / (c.mass * 9.81 * (front ? c.frontWeight : 1 - c.frontWeight) / 2), c.stiffnessLoadExponent));
     tire.kinematicSlipAngle = kinematicSlip;
@@ -513,7 +523,7 @@ export function step(car, input = {}, dt = FIXED_DT, surfaceAt = () => 1, barrie
     fx += bodyFx;
     fy += bodyFy;
     moment += x * bodyFy - y * bodyFx;
-    return { ...tire, load: loads[i], grip, rolling, compoundGrip: compound.grip, tempGrip, wearGrip, wear: car.tireWear[i], slipPower, surfaceTemp: temp.surface, carcassTemp: temp.carcass,
+    return { ...tire, load: loads[i], grip, wetness, weatherGrip, rolling, compoundGrip: compound.grip, tempGrip, wearGrip, wear: car.tireWear[i], slipPower, surfaceTemp: temp.surface, carcassTemp: temp.carcass,
       x: worldX, y: worldY, steer: angle,
       omega: car.wheelOmega[i], driveTorque: torque,
       resistanceTorque: (freeOmega - car.wheelOmega[i]) * inertia / dt };

@@ -1,6 +1,9 @@
 name: Deploy F1 to GitHub Pages
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -10,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: f1-pages-release
+  group: f1-pages-release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -39,6 +42,7 @@ jobs:
           node --check src/world3d.mjs
           node --check src/mirror3d.mjs
           node --check src/race.mjs
+          node --check src/physics.mjs
 
   test:
     needs: validate
@@ -50,10 +54,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run unit tests
+      - name: Run weather unit tests
+        run: node --test test/weather.test.mjs
+      - name: Run full unit test suite
         run: node --test test/*.test.mjs
 
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
