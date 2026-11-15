@@ -449,6 +449,194 @@ async function initialiseHomeAccount() {
   refreshHomeAccountUi();
 }
 
+const F1_PROGRESSION_KEY = 'agentiloop-f1-progression-v1';
+const F1_SEASON_TRACKS = ['bahrain', 'monaco', 'silverstone', 'spa', 'monza'].filter(key => Object.hasOwn(CIRCUITS, key));
+const F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+let progressionStore = {
+  version: 1,
+  career: { nextSeason: 1, activeSeason: null, seasons: [], stats: { starts: 0, wins: 0, podiums: 0, points: 0, championships: 0, bestLap: null } },
+  championship: { nextSeason: 1, activeSeason: null, seasons: [] }
+};
+let activeProgressionMode = new URLSearchParams(location.search).get('progression');
+let activeProgressionRoundIndex = Math.max(0, Number(new URLSearchParams(location.search).get('round')) || 0);
+let raceProgressionRecorded = false;
+let progressionLoaded = false;
+
+function cleanProgressionState(value) {
+  const fresh = {
+    version: 1,
+    career: { nextSeason: 1, activeSeason: null, seasons: [], stats: { starts: 0, wins: 0, podiums: 0, points: 0, championships: 0, bestLap: null } },
+    championship: { nextSeason: 1, activeSeason: null, seasons: [] }
+  };
+  if (!value || typeof value !== 'object') return fresh;
+  for (const mode of ['career', 'championship']) {
+    const source = value[mode];
+    if (!source || typeof source !== 'object') continue;
+    fresh[mode].nextSeason = Math.max(1, Math.floor(Number(source.nextSeason) || 1));
+    fresh[mode].seasons = Array.isArray(source.seasons) ? source.seasons.slice(-10) : [];
+    if (source.activeSeason && typeof source.activeSeason === 'object') fresh[mode].activeSeason = source.activeSeason;
+    if (mode === 'career' && source.stats && typeof source.stats === 'object') {
+      fresh.career.stats = { ...fresh.career.stats, ...source.stats };
+    }
+  }
+  return fresh;
+}
+
+async function persistF1Progression() {
+  try { localStorage.setItem(F1_PROGRESSION_KEY, JSON.stringify(progressionStore)); } catch {}
+  if (!connectedHomeAccount?.profile) return false;
+  await homeAccountRequest('/account/saves/f1-simulator', {
+    method: 'POST',
+    body: { save: { version: 1, progression: progressionStore } }
+  });
+  return true;
+}
+
+async function loadF1Progression() {
+  let localState = null;
+  try {
+    const raw = localStorage.getItem(F1_PROGRESSION_KEY);
+    if (raw) localState = cleanProgressionState(JSON.parse(raw));
+  } catch {}
+  progressionStore = localState || cleanProgressionState(null);
+  if (connectedHomeAccount?.profile) {
+    try {
+      const cloud = await homeAccountRequest('/account/saves/f1-simulator');
+      if (cloud.save?.progression) progressionStore = cleanProgressionState(cloud.save.progression);
+      else if (localState) await persistF1Progression();
+    } catch (error) {
+      console.warn('F1 cloud career save unavailable; keeping this device save:', error.message);
+    }
+  }
+  progressionLoaded = true;
+  updateProgressionMenu();
+}
+
+function makeSeason(mode) {
+  const container = progressionStore[mode];
+  const seasonNumber = container.nextSeason;
+  const rotation = Math.max(0, seasonNumber - 1) % Math.max(1, F1_SEASON_TRACKS.length);
+  const schedule = F1_SEASON_TRACKS.map((_, index) => F1_SEASON_TRACKS[(index + rotation) % F1_SEASON_TRACKS.length]);
+  const season = {
+    seasonNumber, mode, createdAt: Date.now(), completedAt: null,
+    currentRound: 0, status: 'active', totalPoints: 0,
+    rounds: schedule.map((circuitKey, index) => ({
+      number: index + 1, circuitKey, completedAt: null, result: null
+    })),
+    driverStandings: {}
+  };
+  container.activeSeason = season;
+  return season;
+}
+
+function getActiveSeason(mode, create = true) {
+  const container = progressionStore[mode];
+  if (!container) return null;
+  if (container.activeSeason?.status === 'active' &&
+      container.activeSeason.currentRound < container.activeSeason.rounds.length) {
+    return container.activeSeason;
+  }
+  if (!create) return null;
+  if (container.activeSeason?.status === 'completed') {
+    container.seasons.push(container.activeSeason);
+    container.seasons = container.seasons.slice(-10);
+    container.nextSeason = Math.max(container.nextSeason, container.activeSeason.seasonNumber + 1);
+    container.activeSeason = null;
+  }
+  return makeSeason(mode);
+}
+
+function updateProgressionMenu() {
+  const modeInput = $('menu-progression'), summary = $('progression-summary'), start = $('start-session');
+  if (!modeInput || !summary || !start) return;
+  const mode = modeInput.value;
+  const practice = $('menu-session-type').value === 'practice';
+  $('menu-session-type').disabled = mode !== 'quick';
+  $('menu-opponents').disabled = mode !== 'quick' || practice;
+  if (mode === 'quick') {
+    summary.textContent = 'Quick race: choose any circuit and session type. Quick races do not alter your career or championship.';
+    start.textContent = 'START SESSION →';
+    return;
+  }
+  const season = getActiveSeason(mode);
+  const round = season.rounds[season.currentRound];
+  const circuitName = CIRCUITS[round.circuitKey]?.name || round.circuitKey;
+  const storage = connectedHomeAccount?.profile ? 'Progress syncs to your Home account.' : 'Progress saves on this device. Connect Home in Driver profile to sync it.';
+  summary.textContent = (mode === 'career' ? 'Career' : 'Championship') +
+    ' · Season ' + season.seasonNumber + ' · Round ' + (round.number) + '/' + season.rounds.length +
+    ' · ' + circuitName + ' · ' + storage;
+  $('menu-track-select').value = round.circuitKey;
+  start.textContent = (mode === 'career' ? 'CAREER' : 'CHAMPIONSHIP') + ' · ROUND ' + round.number + ' →';
+}
+
+async function recordProgressionResult() {
+  if (raceProgressionRecorded || !['career', 'championship'].includes(activeProgressionMode) ||
+      !sim?.finish?.flag || !sim.finish.done) return;
+  raceProgressionRecorded = true;
+  const mode = activeProgressionMode;
+  const season = getActiveSeason(mode, false);
+  const round = season?.rounds?.[activeProgressionRoundIndex];
+  if (!season || !round || round.completedAt) return;
+  const rows = sim.classification();
+  const player = rows.find(row => row.player);
+  if (!player) return;
+  const now = Date.now();
+  const playerPoints = player.finished && !player.dsq ? (F1_POINTS[player.position - 1] || 0) : 0;
+  const bestLap = Number.isFinite(timer.state.bestLap) ? timer.state.bestLap : null;
+
+  round.completedAt = now;
+  round.result = {
+    position: player.position, finished: !!player.finished, retired: !!player.retired,
+    disqualified: !!player.dsq, points: playerPoints,
+    bestLap, totalTime: Number.isFinite(player.total) ? player.total : null,
+    weather: weatherLabel, wetness: Math.round(weatherWetness * 100)
+  };
+
+  for (const row of rows) {
+    const key = String(row.name || 'Driver').slice(0, 40);
+    const standing = season.driverStandings[key] || (season.driverStandings[key] = {
+      name: key, points: 0, wins: 0, podiums: 0, starts: 0
+    });
+    standing.starts++;
+    const points = row.finished && !row.dsq ? (F1_POINTS[row.position - 1] || 0) : 0;
+    standing.points += points;
+    if (row.finished && row.position === 1) standing.wins++;
+    if (row.finished && row.position <= 3) standing.podiums++;
+  }
+
+  season.totalPoints += playerPoints;
+  season.currentRound++;
+  if (mode === 'career') {
+    const stats = progressionStore.career.stats;
+    stats.starts++;
+    stats.points += playerPoints;
+    if (player.finished && player.position === 1) stats.wins++;
+    if (player.finished && player.position <= 3) stats.podiums++;
+    if (bestLap !== null && (stats.bestLap === null || bestLap < stats.bestLap)) stats.bestLap = bestLap;
+  }
+  if (season.currentRound >= season.rounds.length) {
+    season.status = 'completed';
+    season.completedAt = now;
+    season.finalStandings = Object.values(season.driverStandings).sort((a, b) =>
+      b.points - a.points || b.wins - a.wins || b.podiums - a.podiums
+    );
+    if (season.finalStandings[0]?.name === driverProfile.name && mode === 'career') {
+      progressionStore.career.stats.championships++;
+    }
+  }
+
+  try {
+    const cloudSaved = await persistF1Progression();
+    const nextText = season.status === 'completed'
+      ? 'Season complete — final standings saved.'
+      : 'Round ' + round.number + ' saved. Next: ' + CIRCUITS[season.rounds[season.currentRound].circuitKey].name + '.';
+    $('status').textContent = nextText + (cloudSaved ? ' Synced to Home.' : ' Saved on this device.');
+    updateProgressionMenu();
+  } catch (error) {
+    $('status').textContent = 'Race result saved on this device. Home sync failed: ' + error.message;
+  }
+}
+
 function previewProfilePhoto(url, name) {
   const initial = profileInitial(name);
   $('profile-avatar-initial').textContent = initial;
