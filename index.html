@@ -1238,6 +1238,12 @@ window.addEventListener('keydown', e => {
   if (e.target.closest('button,input,select,textarea')) return;
   if ([...drivingKeys,'Space','KeyR','KeyV','KeyP','KeyC','KeyM','KeyO','KeyB','KeyH','KeyL','KeyT','KeyZ','KeyX','KeyG','KeyI'].includes(e.code)) e.preventDefault();
   if (e.repeat) return;
+  if (replayActive) {
+    if (e.code === 'Escape') exitReplay();
+    else if (e.code === 'Space') { replayPlaying = !replayPlaying; replayLastFrame = performance.now(); updateReplayControls(); }
+    else if (e.code === 'KeyC') changeCamera();
+    return;
+  }
   if (e.code !== 'KeyM') startAudio();
   if (e.code === 'Escape' && sessionStarted) { if (!paused) showPauseMenu(); else hidePauseMenu(); }
   else if (e.code === 'Space' && sessionStarted) { if (paused) hidePauseMenu(); else showPauseMenu(); }
@@ -1819,19 +1825,19 @@ function render(dt = 0, now = performance.now(), replayCars = null) {
 function frame(now) {
   const dt = previousTime !== null && !paused ? Math.min((now - previousTime) / 1000, 0.1) : 0;
   updateWeather(now);
-  gamepadTakeover();
+  if (!replayActive) gamepadTakeover();
   // Gamepad buttons: Y pause / resume, Menu (Start) HUD, B camera, X full screen, A assist, Back (View) reset.
-  if (gamepadPressed(3) && sessionStarted) (paused ? hidePauseMenu() : showPauseMenu());
-  if (gamepadPressed(9)) toggleHud();
-  if (gamepadPressed(1)) changeCamera();
+  if (!replayActive && gamepadPressed(3) && sessionStarted) (paused ? hidePauseMenu() : showPauseMenu());
+  if (!replayActive && gamepadPressed(9)) toggleHud();
+  if (!replayActive && gamepadPressed(1)) changeCamera();
   if (gamepadPressed(2) && !$('fullscreen').hidden) $('fullscreen').click();
-  if (gamepadPressed(0)) toggleAssist();
-  if (gamepadPressed(8)) reset();
+  if (!replayActive && gamepadPressed(0)) toggleAssist();
+  if (!replayActive && gamepadPressed(8)) reset();
   // LB / RB on the start lights: the car one grid position ahead / behind.
   // After lights out they shift down / up (manual gearbox); left stick click: automatic again.
-  if (gamepadPressed(4)) sim.start.phase === 'lights' ? takeGridSlot(sim.gridSlot - 1) : manualShift(-1);
-  if (gamepadPressed(5)) sim.start.phase === 'lights' ? takeGridSlot(sim.gridSlot + 1) : manualShift(1);
-  if (gamepadPressed(10)) autoGearbox();
+  if (!replayActive && gamepadPressed(4)) sim.start.phase === 'lights' ? takeGridSlot(sim.gridSlot - 1) : manualShift(-1);
+  if (!replayActive && gamepadPressed(5)) sim.start.phase === 'lights' ? takeGridSlot(sim.gridSlot + 1) : manualShift(1);
+  if (!replayActive && gamepadPressed(10)) autoGearbox();
   // Right stick click turns the autopilot off (held while driving it is a full brake).
   if (gamepadPressed(11) && autopilot) toggleAutopilot();
   if (previousTime !== null && !paused) {
