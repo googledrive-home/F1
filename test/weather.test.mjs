@@ -34,6 +34,9 @@ test('weather grip input is clamped and unknown compounds are rejected', () => {
 test('AI drivers request weather-appropriate tyres while player pit choice stays manual', () => {
   const track = createStadiumTrack({ halfStraight: 220, radius: 90, roadWidth: 15 });
   const race = createRace(track);
+  race.setWeather(0.02);
+  assert.equal(race.entries[0].pitRequest, null);
+  assert.equal(race.entries[1].pitRequest, null, 'dry AI tyres should not trigger a weather stop');
   race.setWeather(0.7);
   assert.equal(race.entries[0].pitRequest, null);
   assert.equal(race.entries[1].pitRequest, 'wet');
