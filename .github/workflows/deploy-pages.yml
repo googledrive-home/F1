@@ -54,7 +54,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Run unit tests
+      - name: Run weather unit tests
+        run: node --test test/weather.test.mjs
+      - name: Run full unit test suite
         run: node --test test/*.test.mjs
 
   deploy:
