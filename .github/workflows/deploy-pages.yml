@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: f1-pages-release
+  group: f1-pages-release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
         run: node --test test/*.test.mjs
 
   deploy:
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     permissions:
