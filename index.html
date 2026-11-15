@@ -914,23 +914,24 @@ const WEATHER_LABELS = { dynamic: 'Dynamic', dry: 'Dry', cloudy: 'Cloudy', 'ligh
 const weatherQuery = pageQuery.get('weather');
 let weatherMode = WEATHER_MODES.includes(weatherQuery) ? weatherQuery : 'dynamic';
 const WEATHER_PRESETS = {
-  dry: { wetness: 0, rain: 0, label: 'Dry' },
-  cloudy: { wetness: 0.025, rain: 0, label: 'Cloudy' },
-  'light-rain': { wetness: 0.34, rain: 0.42, label: 'Light rain' },
-  'heavy-rain': { wetness: 0.78, rain: 0.9, label: 'Heavy rain' },
+  dry: { wetness: 0, rain: 0, clouds: 0, label: 'Dry' },
+  cloudy: { wetness: 0.025, rain: 0, clouds: 0.65, label: 'Cloudy' },
+  'light-rain': { wetness: 0.34, rain: 0.42, clouds: 0.82, label: 'Light rain' },
+  'heavy-rain': { wetness: 0.78, rain: 0.9, clouds: 0.98, label: 'Heavy rain' },
 };
 function weatherTargetAt(seconds) {
   if (weatherMode !== 'dynamic') return WEATHER_PRESETS[weatherMode];
-  if (seconds < 60) return { wetness: 0, rain: 0, label: 'Dry' };
-  if (seconds < 100) return { wetness: 0.025, rain: 0, label: 'Cloudy' };
-  if (seconds < 180) return { wetness: 0.34, rain: 0.42, label: 'Light rain' };
-  if (seconds < 270) return { wetness: 0.78, rain: 0.9, label: 'Heavy rain' };
-  if (seconds < 375) return { wetness: 0.42, rain: 0.48, label: 'Light rain' };
-  if (seconds < 480) return { wetness: 0.12, rain: 0.08, label: 'Drying track' };
-  return { wetness: 0, rain: 0, label: 'Dry' };
+  if (seconds < 60) return { wetness: 0, rain: 0, clouds: 0, label: 'Dry' };
+  if (seconds < 100) return { wetness: 0.025, rain: 0, clouds: 0.65, label: 'Cloudy' };
+  if (seconds < 180) return { wetness: 0.34, rain: 0.42, clouds: 0.82, label: 'Light rain' };
+  if (seconds < 270) return { wetness: 0.78, rain: 0.9, clouds: 0.98, label: 'Heavy rain' };
+  if (seconds < 375) return { wetness: 0.42, rain: 0.48, clouds: 0.76, label: 'Light rain' };
+  if (seconds < 480) return { wetness: 0.12, rain: 0.08, clouds: 0.42, label: 'Drying track' };
+  return { wetness: 0, rain: 0, clouds: 0, label: 'Dry' };
 }
 let weatherWetness = weatherMode === 'light-rain' ? 0.34 : weatherMode === 'heavy-rain' ? 0.78 : weatherMode === 'cloudy' ? 0.025 : 0;
 let weatherRainIntensity = weatherMode === 'light-rain' ? 0.42 : weatherMode === 'heavy-rain' ? 0.9 : 0;
+let weatherCloudiness = weatherMode === 'cloudy' ? 0.65 : weatherMode === 'light-rain' ? 0.82 : weatherMode === 'heavy-rain' ? 0.98 : 0;
 let weatherLabel = weatherMode === 'dynamic' ? 'Dry' : WEATHER_PRESETS[weatherMode].label;
 let weatherLastUpdate = performance.now();
 function updateWeather(now = performance.now()) {
@@ -939,8 +940,10 @@ function updateWeather(now = performance.now()) {
   const target = weatherTargetAt(sim?.time || 0);
   const wetBlend = 1 - Math.exp(-elapsed / 22);
   const rainBlend = 1 - Math.exp(-elapsed / 7);
+  const cloudBlend = 1 - Math.exp(-elapsed / 14);
   weatherWetness += (target.wetness - weatherWetness) * wetBlend;
   weatherRainIntensity += (target.rain - weatherRainIntensity) * rainBlend;
+  weatherCloudiness += (target.clouds - weatherCloudiness) * cloudBlend;
   weatherLabel = target.label;
   sim?.setWeather?.(weatherWetness);
 }
@@ -981,8 +984,8 @@ function applyWeatherAtmosphere(dt = 0) {
   const rain = weatherRainIntensity, wet = weatherWetness;
   if (skyDome) {
     const uniforms = skyDome.material.uniforms;
-    uniforms.uCoverage.value = Math.min(0.95, shownTime.sky.clouds + 0.34 * rain);
-    uniforms.uDensity.value = Math.min(0.9, shownTime.sky.cloudDensity + 0.22 * rain);
+    uniforms.uCoverage.value = Math.min(0.95, shownTime.sky.clouds + 0.42 * weatherCloudiness);
+    uniforms.uDensity.value = Math.min(0.9, shownTime.sky.cloudDensity + 0.3 * weatherCloudiness);
   }
   if (scene.fog) {
     scene.fog.near = 220 * shownTime.fogFar / 1700;
