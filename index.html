@@ -103,6 +103,17 @@ body{overflow:hidden}
 #mini-hud #mini-speed{font-size:23px;color:#6fffc3}
 #mini-hud #mini-fps{font-size:12px;color:#9ab4c4}
 #pause-open{min-height:36px;padding:8px 12px;background:#1a3545;border-color:#6fffc366;font-size:11px;font-weight:800}
+.replay-panel{position:fixed;z-index:220;left:50%;bottom:18px;transform:translateX(-50%);width:min(760px,calc(100% - 24px));padding:14px 16px;border:1px solid #ffffff2b;border-radius:14px;background:#08131deF;box-shadow:0 12px 40px #000b;color:#eef8f5;backdrop-filter:blur(16px)}
+.replay-panel[hidden]{display:none!important}
+.replay-panel-heading,.replay-control-row{display:flex;align-items:center;gap:12px}
+.replay-panel-heading{justify-content:space-between;margin-bottom:10px}
+.replay-panel-heading strong{font-size:13px;letter-spacing:.03em}
+.replay-panel button,.replay-control-row select{min-height:32px;padding:6px 10px;border:1px solid #ffffff28;border-radius:8px;background:#172b3b;color:#eef8f5;font:inherit;font-size:10px}
+.replay-control-row label,.replay-control-row span{color:#9ab0bf;font-size:9px}
+.replay-control-row span{margin-left:auto;font-variant-numeric:tabular-nums}
+#replay-scrubber{display:block;width:100%;margin:10px 0 4px;accent-color:#6fffc3;cursor:pointer}
+.replay-help{margin:4px 0 0;color:#849bab;font-size:9px}
+
 #loading-screen[hidden],#main-menu[hidden],#pause-menu[hidden],#mini-hud[hidden]{display:none!important}
 body.session-live>header{display:none!important}
 body.session-live main aside,body.session-live main .tag,body.session-live #timing,body.session-live #hud-left{display:none!important}
@@ -187,6 +198,7 @@ body.session-live main{height:100vh}
     <div class="pause-top"><div><div class="overlay-kicker">SESSION PAUSED</div><h1>Take a breather.</h1></div></div>
     <div class="pause-actions">
       <button id="pause-resume" class="overlay-btn primary" type="button">RESUME RACING</button>
+      <button id="pause-replay" class="overlay-btn" type="button" hidden>WATCH REPLAY</button>
       <button id="pause-restart" class="overlay-btn" type="button">Restart session</button>
       <button id="pause-back-menu" class="overlay-btn" type="button">Main menu</button>
     </div>
@@ -208,6 +220,17 @@ body.session-live main{height:100vh}
     </div>
     <div class="menu-hint">Space resumes or pauses · Esc closes this screen · R restarts the session.</div>
   </section>
+</div>
+<div id="replay-panel" class="replay-panel" hidden role="region" aria-label="Race replay controls">
+  <div class="replay-panel-heading"><strong>Race replay</strong><button id="replay-exit" type="button">Exit replay</button></div>
+  <div class="replay-control-row">
+    <button id="replay-toggle" type="button">Pause</button>
+    <label for="replay-speed">Playback</label>
+    <select id="replay-speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    <span id="replay-time">00:00 / 00:00</span>
+  </div>
+  <input id="replay-scrubber" type="range" min="0" max="0" step="0.05" value="0" aria-label="Replay timeline">
+  <p class="replay-help">Drag the timeline to review the race. Use C to change camera views.</p>
 </div>
 <div id="mini-hud" hidden aria-label="Race telemetry">
   <div class="mini-stat"><strong id="mini-speed">0</strong><small id="mini-unit">km/h</small></div>
