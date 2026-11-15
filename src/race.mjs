@@ -851,11 +851,16 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
     setWeather(wetness) {
       if (!pit) return;
       const level = clamp(Number(wetness) || 0, 0, 1);
-      const compound = level >= 0.56 ? 'wet' : level >= 0.16 ? 'intermediate' : 'medium';
       for (const e of entries) {
         if (e.player || e.finish || e.retired || e.pit) continue;
-        if (e.car.compound !== compound && e.pitRequest !== compound) e.pitRequest = compound;
-        else if (e.car.compound === compound && e.pitRequest === compound) e.pitRequest = null;
+        const current = e.car.compound;
+        // Preserve any dry compound in dry conditions; only switch away from
+        // intermediates/wets once the surface has dried.
+        const compound = level >= 0.56 ? 'wet' : level >= 0.16 ? 'intermediate'
+          : (current === 'intermediate' || current === 'wet' ? 'medium' : null);
+        if (compound && current !== compound && e.pitRequest !== compound) e.pitRequest = compound;
+        else if (compound && current === compound && e.pitRequest === compound) e.pitRequest = null;
+        else if (!compound && (e.pitRequest === 'wet' || e.pitRequest === 'intermediate')) e.pitRequest = null;
       }
     },
     // Grid position (1 = pole) of the player's car, from the grid distances.
