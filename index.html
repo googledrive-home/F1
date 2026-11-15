@@ -125,6 +125,14 @@ body.session-live main{height:100vh}
 #f1-home-account-summary{padding:9px 10px;border-radius:8px;background:#ffffff0a;color:#c5d4de;font-size:11px;line-height:1.5}
 #f1-home-status{min-height:18px;margin-top:9px;color:#6fffc3;font-size:10px;line-height:1.5}
 #f1-home-status.error{color:#ff8e86}
+.home-team-form{display:grid;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid #ffffff1c}
+.home-team-form h4{margin:0;color:#e9f0f6;font-size:12px}
+.home-team-form>p{margin:0 0 4px;color:#91a4b6;font-size:10px;line-height:1.5}
+.home-team-form input[type="color"]{height:36px;padding:4px;cursor:pointer}
+.home-team-form input[type="number"]{max-width:120px}
+.home-team-colours{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.home-team-colours>div{display:grid;gap:5px}
+.home-team-colours label{font-size:8px}
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
@@ -302,6 +310,12 @@ const HOME_ACCOUNT_TOKEN_KEY = "homeAccountToken";
 let homeAccountToken = "";
 let homeAccountProfile = null;
 let homePlayerLivery = null;
+try {
+  const savedTeam = JSON.parse(sessionStorage.getItem("homeAccountTeam") || "null");
+  if (savedTeam && /^#[0-9a-f]{6}$/i.test(savedTeam.paint) && /^#[0-9a-f]{6}$/i.test(savedTeam.accent) && /^#[0-9a-f]{6}$/i.test(savedTeam.helmet)) {
+    homePlayerLivery = { paint: parseInt(savedTeam.paint.slice(1), 16), accent: parseInt(savedTeam.accent.slice(1), 16), helmet: parseInt(savedTeam.helmet.slice(1), 16) };
+  }
+} catch {}
 let homeGameSessionId = null;
 let homeGameStartPromise = null;
 let homeRaceReportedForCurrentSession = false;
@@ -333,6 +347,7 @@ function renderHomeAccount() {
     $("f1-home-account-summary").textContent = "Connected as " + (p.username || p.name || "Player") + " · Level " + (p.level || 1) + " · " + Number(p.coins || 0).toLocaleString() + " Home Coins";
     const team=p.f1Team||null;
     homePlayerLivery=team?{paint:parseInt(team.paint.slice(1),16),accent:parseInt(team.accent.slice(1),16),helmet:parseInt(team.helmet.slice(1),16)}:null;
+    try { if(team) sessionStorage.setItem("homeAccountTeam",JSON.stringify(team)); else sessionStorage.removeItem("homeAccountTeam"); } catch {}
     if(team){
       $("f1-home-team-name").value=team.name||"";
       $("f1-home-team-paint").value=team.paint||"#17385c";
@@ -609,6 +624,7 @@ $("f1-home-team-form").addEventListener("submit",async event=>{
       number:Number($("f1-home-team-number").value)
     }});
     homeAccountProfile.f1Team=result.team;
+    try { sessionStorage.setItem("homeAccountTeam",JSON.stringify(result.team)); } catch {}
     homePlayerLivery={paint:parseInt(result.team.paint.slice(1),16),accent:parseInt(result.team.accent.slice(1),16),helmet:parseInt(result.team.helmet.slice(1),16)};
     setHomeAccountStatus("Team saved. Your livery will be used for your next race.");
     renderHomeAccount();
@@ -617,7 +633,8 @@ $("f1-home-team-form").addEventListener("submit",async event=>{
 });
 $("f1-home-disconnect").addEventListener("click", async () => {
   try { await homeAccountRequest("/account/logout", { method: "POST", body: {} }); } catch {}
-  homeAccountToken = ""; homeAccountProfile = null; homeGameSessionId = null;
+  homeAccountToken = ""; homeAccountProfile = null; homeGameSessionId = null; homePlayerLivery = null;
+  try { sessionStorage.removeItem("homeAccountTeam"); } catch {}
   try { sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY); } catch {}
   renderHomeAccount(); setHomeAccountStatus("Home account disconnected from this browser.");
 });
