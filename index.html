@@ -516,6 +516,127 @@ let activeProgressionRoundIndex = Math.max(0, Number(new URLSearchParams(locatio
 let raceProgressionRecorded = false;
 let progressionLoaded = false;
 
+const REPLAY_INTERVAL = 0.125;
+const REPLAY_MAX_SNAPSHOTS = 8 * 60 * 8;
+let replaySnapshots = [];
+let replayLastCapture = -Infinity;
+let replayActive = false;
+let replayPlaying = false;
+let replayTime = 0;
+let replayLastFrame = 0;
+let replaySpeed = 1;
+
+function captureReplaySnapshot() {
+  if (!sim?.entries?.length) return;
+  const time = Number(sim.time) || 0;
+  if (time - replayLastCapture < REPLAY_INTERVAL) return;
+  replayLastCapture = time;
+  const alpha = Number(sim.interpolationAlpha) || 0;
+  const cars = sim.entries.map(entry => {
+    const car = entry.car;
+    const previous = entry.renderPrevious, current = entry.renderCurrent;
+    let x = car.x, y = car.y, heading = car.heading;
+    if (previous && current) {
+      const turn = Math.atan2(Math.sin(current.heading - previous.heading), Math.cos(current.heading - previous.heading));
+      x = previous.x + (current.x - previous.x) * alpha;
+      y = previous.y + (current.y - previous.y) * alpha;
+      heading = previous.heading + turn * alpha;
+    }
+    return {
+      x, y, heading,
+      body: { roll: car.body.roll, pitch: car.body.pitch, heave: car.body.heave },
+      wheelOmega: Array.isArray(car.wheelOmega) ? car.wheelOmega.slice(0, 4) : [0, 0, 0, 0],
+      steer: car.steer || 0, drs: car.drs || 0, ax: car.ax || 0, ay: car.ay || 0,
+      telemetry: { speed: car.telemetry?.speed || 0 }
+    };
+  });
+  replaySnapshots.push({
+    time, cars,
+    weather: { wetness: weatherWetness, rain: weatherRainIntensity, clouds: weatherCloudiness, label: weatherLabel }
+  });
+  if (replaySnapshots.length > REPLAY_MAX_SNAPSHOTS) replaySnapshots.shift();
+}
+
+function sampleReplaySnapshot(time) {
+  if (!replaySnapshots.length) return null;
+  let low = 0, high = replaySnapshots.length - 1;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (replaySnapshots[mid].time < time) low = mid + 1;
+    else high = mid;
+  }
+  const after = replaySnapshots[low];
+  const before = replaySnapshots[Math.max(0, low - 1)];
+  const span = Math.max(0.0001, after.time - before.time);
+  const blend = Math.max(0, Math.min(1, (time - before.time) / span));
+  const lerp = (a, b) => a + (b - a) * blend;
+  const cars = before.cars.map((a, index) => {
+    const b = after.cars[index] || a;
+    const headingDelta = Math.atan2(Math.sin(b.heading - a.heading), Math.cos(b.heading - a.heading));
+    return {
+      ...a,
+      x: lerp(a.x, b.x), y: lerp(a.y, b.y), heading: a.heading + headingDelta * blend,
+      body: {
+        roll: lerp(a.body.roll, b.body.roll),
+        pitch: lerp(a.body.pitch, b.body.pitch),
+        heave: lerp(a.body.heave, b.body.heave)
+      },
+      wheelOmega: a.wheelOmega.map((value, i) => lerp(value, b.wheelOmega[i] ?? value)),
+      steer: lerp(a.steer, b.steer), drs: lerp(a.drs, b.drs),
+      ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay),
+      telemetry: { speed: lerp(a.telemetry.speed, b.telemetry.speed) }
+    };
+  });
+  const weather = {
+    wetness: lerp(before.weather.wetness, after.weather.wetness),
+    rain: lerp(before.weather.rain, after.weather.rain),
+    clouds: lerp(before.weather.clouds, after.weather.clouds),
+    label: blend < 0.5 ? before.weather.label : after.weather.label
+  };
+  return { cars, weather };
+}
+
+function replayClock(seconds) {
+  const value = Math.max(0, Math.floor(seconds));
+  return String(Math.floor(value / 60)).padStart(2, '0') + ':' + String(value % 60).padStart(2, '0');
+}
+
+function updateReplayControls() {
+  const button = $('pause-replay');
+  if (button) button.hidden = replaySnapshots.length < 2 || !sim?.finish?.done;
+  if (!replayActive) return;
+  const first = replaySnapshots[0]?.time || 0;
+  const last = replaySnapshots[replaySnapshots.length - 1]?.time || first;
+  $('replay-scrubber').max = String(Math.max(0, last - first));
+  $('replay-scrubber').value = String(Math.max(0, Math.min(last - first, replayTime - first)));
+  $('replay-time').textContent = replayClock(replayTime - first) + ' / ' + replayClock(last - first);
+  $('replay-toggle').textContent = replayPlaying ? 'Pause' : 'Play';
+}
+
+function startReplay() {
+  if (replaySnapshots.length < 2) return;
+  replayActive = true;
+  replayPlaying = true;
+  replaySpeed = Number($('replay-speed').value) || 1;
+  replayTime = replaySnapshots[0].time;
+  replayLastFrame = performance.now();
+  pause(true);
+  $('pause-menu').hidden = true;
+  $('replay-panel').hidden = false;
+  document.body.classList.remove('race-paused');
+  updateReplayControls();
+}
+
+function exitReplay() {
+  replayActive = false;
+  replayPlaying = false;
+  $('replay-panel').hidden = true;
+  showPauseMenu();
+  render(0, performance.now());
+}
+
+
+
 function cleanProgressionState(value) {
   const fresh = {
     version: 1,
