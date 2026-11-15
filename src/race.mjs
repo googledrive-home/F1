@@ -314,7 +314,14 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
   // On the pit apron side of the white line (on a circuit, only beside the pit lane).
   const pitApron = car => !!pit && pitOff(car) < -pit.inner && (!circuit || pitS(car) !== null);
   // The compound a car fits at its next stop.
-  const nextCompound = e => e.pitRequest ?? e.tyres[e.stops.length + 1] ?? (e.car.compound === 'hard' ? 'medium' : 'hard');
+  const weatherWetness = () => typeof o.weatherWetness === 'function' ? clamp(Number(o.weatherWetness()) || 0, 0, 1) : 0;
+  const nextCompound = e => {
+    if (e.pitRequest) return e.pitRequest;
+    const wet = weatherWetness();
+    if (wet >= 0.68) return 'wet';
+    if (wet >= 0.3) return 'intermediate';
+    return e.tyres[e.stops.length + 1] ?? (e.car.compound === 'hard' ? 'medium' : 'hard');
+  };
   // Path offset of a stopping car at lap progress s: from its line into the
   // fast lane, across to its box and back, then (from mergeAt, once the
   // rejoin is clear) out to the racing line. On a circuit the path is a
@@ -349,6 +356,10 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
     const lap = Math.round(e.covered / length), remaining = laps ? laps - lap : Infinity;
     if (!pit || remaining < 1 || e.finish || flagTime !== null) return false;
     if (e.pitRequest) return true;
+    const wet = weatherWetness();
+    if (wet >= 0.68 && e.car.compound !== 'wet') return true;
+    if (wet >= 0.3 && wet < 0.68 && !['wet', 'intermediate'].includes(e.car.compound)) return true;
+    if (wet < 0.12 && ['wet', 'intermediate'].includes(e.car.compound)) return true;
     // A planned stop waits a lap rather than queue behind a car just ahead
     // that is boxing too, unless this is the last lap it can be made.
     const queue = entries.some(x => x !== e && x.pit?.phase === 'in' && ahead_(x.covered - e.covered) < o.queueDistance);
