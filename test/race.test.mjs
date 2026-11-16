@@ -332,10 +332,13 @@ test('AI pit strategy selects wet tyres as track wetness rises', () => {
     grid: DEFAULT_GRID.slice(0, 1), laps: 2, compoundRule: true, start: { seed: 3 },
     options: { weatherWetness: () => wetness.value },
   });
-  for (let i = 0; i < 180 / FIXED_DT && !race.finish.done; i++) {
+  const ai = race.entries[1];
+  // The player stays stationary in this strategy test. Stop when the AI has
+  // actually completed its weather-driven tyre change, not when the player
+  // finishes the race.
+  for (let i = 0; i < 120 / FIXED_DT && !ai.compounds.includes('wet'); i++) {
     race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
   }
-  const ai = race.entries[1];
-  assert.ok(race.finish.done, 'wet-weather race should complete');
-  assert.ok(ai.compounds.includes('wet'), JSON.stringify(ai.compounds));
+  assert.ok(ai.compounds.includes('wet'), 'AI did not fit wet tyres: ' + JSON.stringify(ai.compounds));
+  assert.ok(ai.stops.length > 0, 'AI should have made a weather-related pit stop');
 });
