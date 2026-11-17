@@ -1276,25 +1276,28 @@ function createCarDropletLayer(parent, seed = 0) {
   group.visible = false;
   return { group, droplets };
 }
-const playerCarDropletLayers = [createCarDropletLayer(cars[0].model.group),createCarDropletLayer(cars[0].lowModel.group,1)];
+let carDropletLayers = [];
 function updateCarDroplets(delta) {
-  const visible = weatherRain > 0.035, speed = Math.max(0,sim?.car?.telemetry?.speed||0);
-  for (const layer of playerCarDropletLayers) {
-    layer.group.visible = visible;
-    for (const drop of layer.droplets) {
-      const home = drop.userData.home;
-      const travel = (0.06 + weatherRain * 0.42 + speed * 0.007) * Math.max(0,delta);
-      drop.position.x -= travel * (0.75 + (drop.userData.seed % 0.7));
-      drop.position.z += Math.sin(drop.userData.seed + performance.now()*0.0004) * travel * 0.08;
-      if (drop.position.x < -1.95) { drop.position.copy(home); drop.position.x += (drop.userData.seed%0.4); }
-      drop.material.opacity = visible ? 0.5 + Math.min(0.42,weatherRain*0.42) : 0;
+  const visible = weatherRain > 0.035, speed = Math.max(0,sim?.car?.telemetry?.speed||0), playerSkin=skins?.[0]??0;
+  carDropletLayers.forEach((layer,index)=>{
+    const active=visible&&index===playerSkin;
+    layer.group.visible=active;
+    if(!active)return;
+    for(const drop of layer.droplets){
+      const home=drop.userData.home;
+      const travel=(0.06+weatherRain*0.42+speed*0.007)*Math.max(0,delta);
+      drop.position.x-=travel*(0.75+(drop.userData.seed%0.7));
+      drop.position.z+=Math.sin(drop.userData.seed+performance.now()*0.0004)*travel*0.08;
+      if(drop.position.x < -1.95){drop.position.copy(home);drop.position.x+=(drop.userData.seed%0.4);}
+      drop.material.opacity=0.5+Math.min(0.42,weatherRain*0.42);
     }
-  }
+  });
 }
 // skins[i]: the livery entry i is drawn in (entry 0 is yours). Taking a grid slot puts you
 // in the car there, so the two entries swap liveries: you drive on in its colours and your
 // old car carries on with the AI. Reset puts you back in the navy car.
 const skins = cars.map((_, i) => i);
+carDropletLayers=cars.map((item,index)=>createCarDropletLayer(item.model.group,index));
 let model;
 // The player's mirrors reflect the scene behind (the rivals' keep the environment reflection).
 function wearSkins(list) {
