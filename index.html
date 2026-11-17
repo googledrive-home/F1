@@ -898,8 +898,9 @@ function reset() {
   // Tyres: start compound ?tyre=soft|medium|hard (default medium); with opponents
   // the two-compound rule applies (races of 2+ laps).
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
+  const aiScale = ({easy:0.9,normal:1,hard:1.08})[query.get('ai')] || 1;
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
-  sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
+  sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount).map(spec=>({...spec,cornerSpeed:spec.cornerSpeed*aiScale,brakeDecel:spec.brakeDecel*aiScale})) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
     runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, options: { weatherWetness: () => weatherWetness }, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : tyre === 'wet' ? 'intermediate' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
@@ -911,6 +912,8 @@ function reset() {
     r.lowActive = false;
     r.wheelAngle.fill(0);
   });
+  const requestedGridSlot=Math.max(1,Math.min(sim.entries.length,Math.round(Number(query.get('grid'))||1)));
+  if(opponents&&requestedGridSlot>1)takeGridSlot(requestedGridSlot);
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
   homeRaceReportedForCurrentSession = false;
   if (sessionStarted && raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
@@ -1737,7 +1740,11 @@ function launchFromMenu() {
   }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
+  const grid = Math.max(1,Math.min(5,Math.round(Number($('menu-grid-position').value)||1)));params.set('grid',String(grid));
+  const ai = ['easy','normal','hard'].includes($('menu-ai-skill').value)?$('menu-ai-skill').value:'normal';params.set('ai',ai);
   const weather = $('menu-weather').value; if (WEATHER_MODES.has(weather)) params.set('weather', weather); else params.delete('weather');
+  params.set('evolution',$('menu-weather-evolution').value);
+  params.set('rainIntensity',String(Math.round(Number($('menu-rain-intensity').value)||0)));
   const tyre = $('menu-tyre').value; if (TIRE_COMPOUNDS[tyre]) params.set('tyre', tyre); else params.delete('tyre');
   const quality = $('menu-quality').value;
   if (quality === 'balanced') params.delete('quality'); else params.set('quality', quality);
@@ -1754,11 +1761,16 @@ function launchFromMenu() {
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
 $('menu-weather').value = weatherMode;
+$('menu-weather-evolution').value = weatherEvolution;
+$('menu-rain-intensity').value = String(Math.round(weatherIntensity*100));
+$('menu-rain-value').textContent = Math.round(weatherIntensity*100)+'%';
+$('menu-ai-skill').value = ['easy','normal','hard'].includes(pageQuery.get('ai'))?pageQuery.get('ai'):'normal';
+$('menu-grid-position').value = String(Math.max(1,Math.min(5,Number(pageQuery.get('grid'))||1)));
 $('menu-tyre').value = TIRE_COMPOUNDS[pageQuery.get('tyre')] ? pageQuery.get('tyre') : 'medium';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
 $('menu-opponents').value = String(selectedOpponentCount);
 $('menu-opponents').disabled = $('menu-session-type').value === 'practice';
-$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice'; });
+$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice';$('menu-ai-skill').disabled=$('menu-session-type').value==='practice';$('menu-grid-position').disabled=$('menu-session-type').value==='practice';updateGrandPrixPreview(); });
 $('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
 $('menu-quality').value = qualityMode;
 $('menu-quality-slider').value = String(Math.round(performanceScale * 100));
@@ -1769,6 +1781,7 @@ function updateManualQualityControls() {
 }
 $('menu-quality').addEventListener('change', updateManualQualityControls);
 $('menu-quality-slider').addEventListener('input', updateManualQualityControls);
+$('menu-rain-intensity').addEventListener('input',()=>{$('menu-rain-value').textContent=$('menu-rain-intensity').value+'%';updateGrandPrixPreview();});
 updateManualQualityControls();
 $('start-session').addEventListener('click', launchFromMenu);
 $('menu-profile').addEventListener('click', () => $('profile-open').click());
