@@ -1058,25 +1058,102 @@ scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
 const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode, qualityScale: performanceScale }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
-const rainPosition = new Float32Array(180 * 3);
-for (let i = 0; i < 180; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 50; rainPosition[i * 3 + 1] = 4 + Math.random() * 15; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 50; }
+const RAIN_COUNT = 520;
+const rainPosition = new Float32Array(RAIN_COUNT * 3);
+for (let i = 0; i < RAIN_COUNT; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 55; rainPosition[i * 3 + 1] = 4 + Math.random() * 20; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 55; }
 const rainGeometry = new THREE.BufferGeometry(); rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPosition, 3));
-const rainMaterial = new THREE.PointsMaterial({ color: 0xc6dce8, size: 0.085, transparent: true, opacity: 0.3, depthWrite: false, sizeAttenuation: true });
+const rainMaterial = new THREE.PointsMaterial({ color: 0xd7eaf6, size: 0.105, transparent: true, opacity: 0.5, depthWrite: false, sizeAttenuation: true });
 const rainPoints = new THREE.Points(rainGeometry, rainMaterial); rainPoints.frustumCulled = false; rainPoints.visible = false; world.add(rainPoints);
-function updateWeatherVisuals(delta) {
-  rainPoints.visible = weatherRain > 0.015;
-  rainMaterial.opacity = 0.12 + weatherRain * 0.28;
-  if (!rainPoints.visible || delta <= 0) return;
-  const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (19 + weatherRain * 12) * delta;
-  for (let i = 0; i < 180; i++) {
-    const k = i * 3; positions[k + 1] -= fall;
-    if (positions[k + 1] < 0) {
-      positions[k] = car.x + (Math.random() - 0.5) * 50;
-      positions[k + 1] = 9 + Math.random() * 14;
-      positions[k + 2] = -car.y + (Math.random() - 0.5) * 50;
+
+// Thin reflective puddle decals sampled directly onto the circuit surface.
+const puddleGroup = new THREE.Group(); puddleGroup.name = 'wet-track-puddles'; world.add(puddleGroup);
+const puddleGeometry = new THREE.CircleGeometry(1, 18);
+const puddleMaterial = new THREE.MeshPhysicalMaterial({ color: 0x8daec2, metalness: 0.26, roughness: 0.055, clearcoat: 1, clearcoatRoughness: 0.035, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+const puddleMeshes = [];
+if (track.point && track.elevation) {
+  for (let i = 0; i < 96; i++) {
+    const s = track.length * (i + 0.5) / 96, offset = (Math.random() - 0.5) * track.roadWidth * 0.76;
+    const [x,y] = track.point(s, offset);
+    if (track.surface(x,y) !== 'asphalt') continue;
+    const puddle = new THREE.Mesh(puddleGeometry, puddleMaterial);
+    puddle.rotation.x = -Math.PI / 2; puddle.rotation.z = Math.random() * Math.PI;
+    puddle.position.set(x, track.elevation(s, offset) + 0.022, -y);
+    const radius = 0.45 + Math.random() * 1.05;
+    puddle.scale.set(radius * (1.2 + Math.random() * 1.7), radius * (0.48 + Math.random() * 0.55), 1);
+    puddle.visible = false; puddleGroup.add(puddle); puddleMeshes.push(puddle);
+  }
+}
+
+// Lens droplets live in screen space, so they move over the camera view rather than the world.
+const lensCanvas = $('lens-weather'), lensContext = lensCanvas.getContext('2d');
+let lensWidth = 1, lensHeight = 1, lensDpr = 1, lensDrops = [], lensSpawn = 0;
+function resizeLensCanvas() {
+  const rect = lensCanvas.getBoundingClientRect();
+  lensWidth = Math.max(1, rect.width); lensHeight = Math.max(1, rect.height);
+  lensDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  lensCanvas.width = Math.round(lensWidth * lensDpr); lensCanvas.height = Math.round(lensHeight * lensDpr);
+  lensContext.setTransform(lensDpr,0,0,lensDpr,0,0);
+}
+resizeLensCanvas();
+window.addEventListener('resize', resizeLensCanvas);
+function updateLensWeather(delta) {
+  const raining = Math.min(1, weatherRain);
+  if (raining > 0.02 && delta > 0) {
+    lensSpawn += delta * (8 + raining * 42);
+    while (lensSpawn >= 1 && lensDrops.length < 90) {
+      lensSpawn -= 1;
+      const radius = 1.1 + Math.random() * (2.2 + raining * 2.4);
+      lensDrops.push({ x: Math.random() * lensWidth, y: -radius, radius, vx: (Math.random() - 0.5) * 10, vy: 20 + Math.random() * 40 + raining * 38, tail: 5 + Math.random() * 16 });
     }
   }
-  rainGeometry.attributes.position.needsUpdate = true;
+  lensContext.clearRect(0,0,lensWidth,lensHeight);
+  lensDrops = lensDrops.filter(drop => {
+    drop.x += drop.vx * delta + (sim?.car?.telemetry?.speed || 0) * delta * 0.035;
+    drop.y += drop.vy * delta;
+    if (drop.y > lensHeight + 25 || drop.x < -20 || drop.x > lensWidth + 20) return false;
+    const r=drop.radius, trail=drop.tail;
+    lensContext.beginPath(); lensContext.moveTo(drop.x-r*0.2,drop.y-trail); lensContext.quadraticCurveTo(drop.x-r*0.4,drop.y-trail*0.25,drop.x,drop.y+r*0.5);
+    lensContext.strokeStyle='rgba(208,235,250,'+(0.08+raining*0.18)+')';lensContext.lineWidth=Math.max(0.7,r*0.42);lensContext.stroke();
+    const gradient=lensContext.createRadialGradient(drop.x-r*0.35,drop.y-r*0.4,0,drop.x,drop.y,r*1.5);
+    gradient.addColorStop(0,'rgba(255,255,255,'+(0.12+raining*0.2)+')');gradient.addColorStop(0.35,'rgba(192,224,244,'+(0.11+raining*0.2)+')');gradient.addColorStop(1,'rgba(113,158,190,0.025)');
+    lensContext.beginPath();lensContext.ellipse(drop.x,drop.y,r*0.8,r*1.25,-0.16,0,Math.PI*2);lensContext.fillStyle=gradient;lensContext.fill();
+    lensContext.beginPath();lensContext.ellipse(drop.x-r*0.2,drop.y-r*0.42,r*0.22,r*0.38,-0.4,0,Math.PI*2);lensContext.fillStyle='rgba(255,255,255,'+(0.18+raining*0.24)+')';lensContext.fill();
+    return true;
+  });
+
+  // Soft sun flare: projected from the selected sun direction, strongest on a dry bright day.
+  const brightness = Math.max(0,Math.min(1,(Number(sun?.intensity)||0)/3.2)) * (timeOfDay==='night'?0:1) * (1-raining*0.82);
+  if (brightness > 0.025) {
+    const sunPoint = sunDir.clone().multiplyScalar(SUN_DISTANCE).project(camera);
+    const sx = sunPoint.x > -1.2 && sunPoint.x < 1.2 ? (sunPoint.x*0.5+0.5)*lensWidth : lensWidth*0.78;
+    const sy = sunPoint.y > -1.2 && sunPoint.y < 1.2 ? (-sunPoint.y*0.5+0.5)*lensHeight : lensHeight*0.18;
+    const glow=lensContext.createRadialGradient(sx,sy,2,sx,sy,Math.min(lensWidth,lensHeight)*0.32);
+    glow.addColorStop(0,'rgba(255,248,218,'+(0.13*brightness)+')');glow.addColorStop(0.18,'rgba(255,216,150,'+(0.075*brightness)+')');glow.addColorStop(1,'rgba(255,216,150,0)');
+    lensContext.fillStyle=glow;lensContext.fillRect(0,0,lensWidth,lensHeight);
+    lensContext.save();lensContext.translate(sx,sy);lensContext.rotate(-0.2);lensContext.fillStyle='rgba(255,241,197,'+(0.04*brightness)+')';lensContext.fillRect(-lensWidth*0.45,-1,lensWidth*0.9,2);lensContext.restore();
+  }
+}
+
+function updateWeatherVisuals(delta) {
+  const raining = weatherRain > 0.015;
+  rainPoints.visible = raining;
+  rainMaterial.opacity = 0.08 + Math.min(1,weatherRain) * 0.48;
+  puddleGroup.visible = weatherWetness > 0.035;
+  puddleMaterial.opacity = puddleGroup.visible ? Math.min(0.38,0.03+weatherWetness*0.42) : 0;
+  for (const puddle of puddleMeshes) puddle.visible = puddleGroup.visible;
+  if (delta > 0 && raining) {
+    const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (28 + weatherRain * 25) * delta;
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      const k = i * 3; positions[k + 1] -= fall;
+      if (positions[k + 1] < 0) {
+        positions[k] = car.x + (Math.random() - 0.5) * 52;
+        positions[k + 1] = 11 + Math.random() * 18;
+        positions[k + 2] = -car.y + (Math.random() - 0.5) * 52;
+      }
+    }
+    rainGeometry.attributes.position.needsUpdate = true;
+  }
+  updateLensWeather(delta);
 }// Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
 // Racing-line chevrons (chevrons.mjs, after the RISE sim's): the speed plan of the
