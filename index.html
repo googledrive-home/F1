@@ -817,7 +817,8 @@ const WEATHER_MODES = new Set(['clear', 'cloudy', 'light-rain', 'heavy-rain', 'c
 let weatherMode = WEATHER_MODES.has(pageQuery.get('weather')) ? pageQuery.get('weather') : 'clear';
 const WEATHER_EVOLUTION = new Set(['off','slow','normal','fast']);
 let weatherEvolution = WEATHER_EVOLUTION.has(pageQuery.get('evolution')) ? pageQuery.get('evolution') : 'normal';
-let weatherIntensity = Math.max(0,Math.min(1.5,(Number(pageQuery.get('rainIntensity'))||100)/100));
+const requestedRainIntensity=pageQuery.has('rainIntensity')?Number(pageQuery.get('rainIntensity')):100;
+let weatherIntensity = Math.max(0,Math.min(1.5,Number.isFinite(requestedRainIntensity)?requestedRainIntensity/100:1));
 let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
 function weatherTargets() {
   return weatherAtTime({mode:weatherMode,evolution:weatherEvolution,elapsed:weatherElapsed,intensity:weatherIntensity});
