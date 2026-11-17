@@ -387,6 +387,7 @@ import { buildChevrons } from './src/chevrons.mjs';
 import { TIMES, TIME_ORDER, TIME_BLEND, lerpTime, setSkyTime, setNightGlow } from './src/sky.mjs';
 import { createStadiumTrack } from './src/track.mjs';
 import { createCircuitTrack } from './src/circuit.mjs';
+import { weatherAtTime } from './src/weather.mjs';
 import { CIRCUITS } from './src/circuits.mjs';
 import { PITS } from './src/pits.mjs';
 import { SCENERY_STYLE, loadScenery, landcoverField } from './src/scenery.mjs';
@@ -819,23 +820,7 @@ let weatherEvolution = WEATHER_EVOLUTION.has(pageQuery.get('evolution')) ? pageQ
 let weatherIntensity = Math.max(0,Math.min(1.5,(Number(pageQuery.get('rainIntensity'))||100)/100));
 let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
 function weatherTargets() {
-  if (weatherMode === 'changing' || weatherEvolution !== 'off') {
-    const cycle = ({off:240,slow:480,normal:240,fast:120})[weatherEvolution] || 240;
-    const phase = (weatherElapsed % cycle) / cycle;
-    let target;
-    if (phase < 0.25) target = { wetness: 0.02, rain: 0, label: 'Dry' };
-    else if (phase < 0.5) target = { wetness: 0.36, rain: 0.34, label: 'Light rain' };
-    else if (phase < 0.75) target = { wetness: 0.88, rain: 0.9, label: 'Heavy rain' };
-    else target = { wetness: 0.52, rain: 0.42, label: 'Showers' };
-    return { ...target, wetness: Math.min(1,target.wetness*weatherIntensity), rain: target.rain*weatherIntensity };
-  }
-  const target = ({
-    clear: { wetness: 0, rain: 0, label: 'Dry' },
-    cloudy: { wetness: 0.04, rain: 0, label: 'Cloudy' },
-    'light-rain': { wetness: 0.38, rain: 0.38, label: 'Light rain' },
-    'heavy-rain': { wetness: 0.88, rain: 0.82, label: 'Heavy rain' }
-  })[weatherMode] || { wetness: 0, rain: 0, label: 'Dry' };
-  return { ...target, wetness: Math.min(1,target.wetness*weatherIntensity), rain: target.rain*weatherIntensity };
+  return weatherAtTime({mode:weatherMode,evolution:weatherEvolution,elapsed:weatherElapsed,intensity:weatherIntensity});
 }
 function updateWeather(delta) {
   if (delta > 0) weatherElapsed += delta;
