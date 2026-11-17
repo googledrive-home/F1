@@ -16,9 +16,9 @@ test('evolving weather passes through dry, light rain, heavy rain and showers', 
 });
 
 test('weather evolution speed changes the phase duration', () => {
-  assert.equal(weatherAtTime({mode:'clear',evolution:'slow',elapsed:120}).label,'Dry');
-  assert.equal(weatherAtTime({mode:'clear',evolution:'normal',elapsed:120}).label,'Heavy rain');
-  assert.equal(weatherAtTime({mode:'clear',evolution:'fast',elapsed:60}).label,'Light rain');
+  assert.equal(weatherAtTime({mode:'clear',evolution:'slow',elapsed:60}).label,'Dry');
+  assert.equal(weatherAtTime({mode:'clear',evolution:'normal',elapsed:60}).label,'Light rain');
+  assert.equal(weatherAtTime({mode:'clear',evolution:'fast',elapsed:60}).label,'Heavy rain');
   assert.equal(weatherAtTime({mode:'clear',evolution:'off',elapsed:120}).label,'Dry');
 });
 
