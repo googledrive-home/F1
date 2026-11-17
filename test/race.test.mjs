@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createCar, step, FIXED_DT } from '../src/physics.mjs';
 import { createStadiumTrack } from '../src/track.mjs';
-import { createRace, wakeStrength, resolveCarContact, RACE_DEFAULTS, DEFAULT_GRID } from '../src/race.mjs';
+import { createRace, wakeStrength, resolveCarContact, weatherTireCompound, weatherRequiresPit, RACE_DEFAULTS, DEFAULT_GRID } from '../src/race.mjs';
 
 const track = createStadiumTrack({ halfStraight: 220, radius: 90, roadWidth: 15 });
 const place = (x, y, heading = 0, speed = 0) => Object.assign(createCar(), { x, y, heading, vx: speed * Math.cos(heading), vy: speed * Math.sin(heading) });
@@ -267,7 +267,7 @@ test('a finisher who never changes compound is disqualified and classified last'
 test('the player can request a stop and a compound; the autopilot boxes and fits it', () => {
   const race = createRace(track);
   race.requestPit('soft');
-  race.requestPit('intermediate'); // unknown compounds are ignored
+  race.requestPit('ultrasoft'); // unknown compounds are ignored
   assert.equal(race.entries[0].pitRequest, 'soft');
   for (let i = 0; i < 70 / FIXED_DT && !race.entries[0].stops.length; i++) race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
   const me = race.entries[0];
@@ -323,4 +323,20 @@ test('an AI car stuck for retireAfter seconds retires: classified after running 
   assert.ok(race.finish.done, 'done once the player finishes');
   rows = race.classification();
   assert.ok(rows[0].finished && rows[1].retired && !rows[1].finished);
+});
+
+
+test('AI tyre choice follows dry, intermediate and wet weather thresholds', () => {
+  assert.equal(weatherTireCompound(0), null);
+  assert.equal(weatherTireCompound(0.29), null);
+  assert.equal(weatherTireCompound(0.3), 'intermediate');
+  assert.equal(weatherTireCompound(0.67), 'intermediate');
+  assert.equal(weatherTireCompound(0.68), 'wet');
+  assert.equal(weatherTireCompound(1), 'wet');
+  assert.equal(weatherRequiresPit('soft', 0.8), true);
+  assert.equal(weatherRequiresPit('medium', 0.4), true);
+  assert.equal(weatherRequiresPit('intermediate', 0.4), false);
+  assert.equal(weatherRequiresPit('wet', 0.8), false);
+  assert.equal(weatherRequiresPit('intermediate', 0.05), true);
+  assert.equal(weatherRequiresPit('soft', 0.05), false);
 });

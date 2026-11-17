@@ -5,7 +5,21 @@
 // telemetry: a close follower loses up to towDragLoss of its drag and
 // dirtyAirLoss of its downforce, decaying over wakeLength metres behind the
 // leader and wakeWidth metres either side of its centreline.
-import { step, createCar, carMass, fitTires, newErsLap, tireTempGrip, tireWearGrip, TIRE_COMPOUNDS, FIXED_DT, clamp } from './physics.mjs';
+import { step, createCar, carMass, fitTires, newErsLap, tireTempGrip, tireWearGrip, tireWeatherGrip, TIRE_COMPOUNDS, FIXED_DT, clamp } from './physics.mjs';
+
+export function weatherTireCompound(wetness) {
+  const wet = clamp(Number(wetness) || 0, 0, 1);
+  if (wet >= 0.68) return 'wet';
+  if (wet >= 0.3) return 'intermediate';
+  return null;
+}
+
+export function weatherRequiresPit(currentCompound, wetness) {
+  const wet = clamp(Number(wetness) || 0, 0, 1);
+  if (wet >= 0.68) return currentCompound !== 'wet';
+  if (wet >= 0.3) return !['wet', 'intermediate'].includes(currentCompound);
+  return wet < 0.12 && ['wet', 'intermediate'].includes(currentCompound);
+}
 import { createAutopilot, createCircuitAutopilot } from './autopilot.mjs';
 
 // AI path and traffic decisions are recalculated 20 times per second; physics remains 60 Hz.
@@ -314,7 +328,13 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
   // On the pit apron side of the white line (on a circuit, only beside the pit lane).
   const pitApron = car => !!pit && pitOff(car) < -pit.inner && (!circuit || pitS(car) !== null);
   // The compound a car fits at its next stop.
-  const nextCompound = e => e.pitRequest ?? e.tyres[e.stops.length + 1] ?? (e.car.compound === 'hard' ? 'medium' : 'hard');
+  const weatherWetness = () => typeof o.weatherWetness === 'function' ? clamp(Number(o.weatherWetness()) || 0, 0, 1) : 0;
+  const nextCompound = e => {
+    if (e.pitRequest) return e.pitRequest;
+    const weatherCompound = weatherTireCompound(weatherWetness());
+    if (weatherCompound) return weatherCompound;
+    return e.tyres[e.stops.length + 1] ?? (e.car.compound === 'hard' ? 'medium' : 'hard');
+  };
   // Path offset of a stopping car at lap progress s: from its line into the
   // fast lane, across to its box and back, then (from mergeAt, once the
   // rejoin is clear) out to the racing line. On a circuit the path is a
@@ -349,6 +369,7 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
     const lap = Math.round(e.covered / length), remaining = laps ? laps - lap : Infinity;
     if (!pit || remaining < 1 || e.finish || flagTime !== null) return false;
     if (e.pitRequest) return true;
+    if (weatherRequiresPit(e.car.compound, weatherWetness())) return true;
     // A planned stop waits a lap rather than queue behind a car just ahead
     // that is boxing too, unless this is the last lap it can be made.
     const queue = entries.some(x => x !== e && x.pit?.phase === 'in' && ahead_(x.covered - e.covered) < o.queueDistance);
@@ -421,7 +442,9 @@ export function createRace(track, { grid = DEFAULT_GRID, options = {}, player = 
       if (e.mistakeAt !== null && e.covered >= e.mistakeAt) { if (!e.pit) e.mistakeUntil = time + o.mistakeTime; e.mistakeAt = null; }
     }
     const pace = e.player ? 1 : e.form * (time < e.mistakeUntil ? o.mistakeLoss : 1);
+    const wetness = typeof o.weatherWetness === 'function' ? clamp(Number(o.weatherWetness()) || 0, 0, 1) : 0;
     const grip = pace * (1 - (1 - car.wake.downforce) * 0.45) * TIRE_COMPOUNDS[car.compound].grip
+      * tireWeatherGrip(TIRE_COMPOUNDS[car.compound], wetness)
       * Math.min(1, temp) * tireWearGrip(car.config, Math.max(...car.tireWear));
     const lookAhead = Math.max(o.lookAhead, o.followGap + 1.5 * speed * speed / (2 * o.followDecel));
     // Cars on the other side of the pit-lane line are separate traffic, except

@@ -112,6 +112,37 @@ body.session-live main{height:100vh}
 #manual-quality-value{float:right;color:#6fffc3;font-variant-numeric:tabular-nums}
 #manual-quality-note{margin:0;color:#8298a9;font-size:10px;line-height:1.5}
 
+
+/* Home account connection, kept within the existing F1 profile-dialog design. */
+.home-account-panel{margin-top:18px;padding:14px;border:1px solid #ffffff24;border-radius:10px;background:#09131d}
+.home-account-panel h3{margin:0 0 6px;color:#e9f0f6;font-size:14px;letter-spacing:.02em}
+.home-account-panel>p{margin:0 0 12px;color:#91a4b6;font-size:11px;line-height:1.5}
+.home-account-panel form{display:grid;gap:8px}
+.home-account-panel label{font-size:10px;color:#91a4b6;letter-spacing:.1em;text-transform:uppercase}
+.home-account-panel input{width:100%;padding:10px 11px;border:1px solid #ffffff2b;border-radius:7px;background:#08111a;color:#e9f0f6;font:inherit;outline:none}
+.home-account-panel input:focus{border-color:#6fffc3;box-shadow:0 0 0 3px #6fffc322}
+.home-account-panel button{margin-top:8px;font-size:11px}
+#f1-home-account-summary{padding:9px 10px;border-radius:8px;background:#ffffff0a;color:#c5d4de;font-size:11px;line-height:1.5}
+#f1-home-status{min-height:18px;margin-top:9px;color:#6fffc3;font-size:10px;line-height:1.5}
+#f1-home-status.error{color:#ff8e86}
+.home-team-form{display:grid;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid #ffffff1c}
+.home-team-form h4{margin:0;color:#e9f0f6;font-size:12px}
+.home-team-form>p{margin:0 0 4px;color:#91a4b6;font-size:10px;line-height:1.5}
+.home-team-form input[type="color"]{height:36px;padding:4px;cursor:pointer}
+.home-team-form input[type="number"]{max-width:120px}
+.home-team-colours{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.home-team-colours>div{display:grid;gap:5px}
+.home-team-colours label{font-size:8px}
+
+.home-championship-panel{margin-top:14px}
+.home-championship-panel>h4{margin:0 0 6px;color:#e9f0f6;font-size:12px}
+#f1-home-championship-summary{padding:9px 10px;border:1px solid #ffffff1b;border-radius:8px;background:#ffffff08;color:#d1dee8;font-size:10px;line-height:1.5}
+#f1-home-championship-next{width:100%;margin-top:9px;padding:10px;border:0;border-radius:7px;background:#39e0ae;color:#07131a;font-weight:900;letter-spacing:.05em;cursor:pointer}
+.home-championship-panel form{display:grid;gap:8px;margin-top:12px}
+.home-championship-panel form>label,.home-championship-label{font-size:9px;color:#91a4b6;letter-spacing:.09em;text-transform:uppercase}
+.home-championship-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:180px;overflow:auto;padding:8px;border:1px solid #ffffff1c;border-radius:8px;background:#08111a}
+.home-championship-tracks label{display:flex;align-items:center;gap:6px;padding:5px;color:#c7d6e2;font-size:9px;cursor:pointer}
+.home-championship-tracks input{accent-color:#39e0ae}
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
@@ -153,6 +184,8 @@ body.session-live main{height:100vh}
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
+      <div class="menu-field"><label for="menu-weather">Weather</label><select id="menu-weather"><option value="clear">Clear</option><option value="cloudy">Cloudy</option><option value="light-rain">Light rain</option><option value="heavy-rain">Heavy rain</option><option value="changing">Changing conditions</option></select></div>
+      <div class="menu-field"><label for="menu-tyre">Starting tyre</label><select id="menu-tyre"><option value="soft">Soft · dry</option><option value="medium">Medium · dry</option><option value="hard">Hard · dry</option><option value="intermediate">Intermediate · mixed wet</option><option value="wet">Full wet</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
       <div class="menu-field"><label for="menu-quality">Graphics quality</label><select id="menu-quality"><option value="high">High graphics</option><option value="balanced" selected>Balanced</option><option value="performance">Performance</option><option value="manual">Manual</option></select></div>
@@ -200,6 +233,7 @@ body.session-live main{height:100vh}
   <div class="mini-stat"><strong id="mini-speed">0</strong><small id="mini-unit">km/h</small></div>
   <div class="mini-stat"><strong id="mini-gear">1</strong><small>Gear</small></div>
   <div class="mini-stat"><strong id="mini-lap">OUT</strong><small>Lap</small></div>
+  <div class="mini-stat"><strong id="mini-weather">DRY</strong><small>Weather</small></div>
   <div class="mini-stat"><strong id="mini-fps">—</strong><small>FPS</small></div>
   <button id="pause-open" type="button">Ⅱ PAUSE</button>
 </div>
@@ -224,7 +258,46 @@ body.session-live main{height:100vh}
       <label for="profile-name-input">Driver name</label>
       <input id="profile-name-input" type="text" maxlength="24" autocomplete="nickname" placeholder="Enter your driver name">
     </div>
-    <p class="profile-local-note">Your profile picture and name are saved in this browser on this device. They are not uploaded to a server or shared between devices.</p>
+    <p class="profile-local-note">Your driver picture stays on this device. Connect your Google Drive Home player account below to sync racing progress, achievements and rewards across the gaming platform.</p>
+    <section class="home-account-panel" aria-labelledby="home-account-heading">
+      <h3 id="home-account-heading">Google Drive Home account</h3>
+      <p>Use the same username and password as your Google Drive Home player profile.</p>
+      <div id="f1-home-connected" hidden><div id="f1-home-account-summary"></div><button id="f1-home-disconnect" type="button">Disconnect account</button>
+      <form id="f1-home-team-form" class="home-team-form">
+        <h4>Your racing team</h4>
+        <p>Create a team identity. Your car paint, accent and helmet colours are saved to your Home profile and apply to the next race.</p>
+        <label for="f1-home-team-name">Team name</label><input id="f1-home-team-name" type="text" minlength="3" maxlength="24" pattern="[A-Za-z0-9 _-]{3,24}" required>
+        <div class="home-team-colours">
+          <div><label for="f1-home-team-paint">Car paint</label><input id="f1-home-team-paint" type="color" value="#17385c"></div>
+          <div><label for="f1-home-team-accent">Accent</label><input id="f1-home-team-accent" type="color" value="#39e0ae"></div>
+          <div><label for="f1-home-team-helmet">Helmet</label><input id="f1-home-team-helmet" type="color" value="#f2bf5e"></div>
+        </div>
+        <label for="f1-home-team-number">Driver number</label><input id="f1-home-team-number" type="number" min="0" max="99" value="7" required>
+        <button class="profile-save" type="submit" id="f1-home-team-save">SAVE TEAM</button>
+      </form>
+      <section class="home-account-panel home-championship-panel">
+        <h4>Championship mode</h4>
+        <p>Build a multi-round calendar using different circuits. Your points, wins and round progress are saved to your Home career.</p>
+        <div id="f1-home-championship-summary" role="status">No active championship.</div>
+        <button id="f1-home-championship-next" type="button" hidden>START NEXT ROUND</button>
+        <form id="f1-home-championship-create">
+          <label for="f1-home-championship-name">Championship name</label>
+          <input id="f1-home-championship-name" type="text" maxlength="32" value="Home Grand Prix" required>
+          <span class="home-championship-label">Choose 3–10 circuits</span>
+          <div id="f1-home-championship-tracks" class="home-championship-tracks"></div>
+          <button type="submit" id="f1-home-championship-save" class="profile-save">CREATE CHAMPIONSHIP</button>
+        </form>
+      </section></div>
+      <form id="f1-home-signin">
+        <label for="f1-home-username">Home username</label>
+        <input id="f1-home-username" type="text" maxlength="20" minlength="3" autocomplete="username" required>
+        <label for="f1-home-password">Password</label>
+        <input id="f1-home-password" type="password" maxlength="128" minlength="8" autocomplete="current-password" required>
+        <button class="profile-save" type="submit" id="f1-home-connect">Connect account</button>
+      </form>
+      <div id="f1-home-status" role="status" aria-live="polite"></div>
+      <button id="f1-home-retry" type="button" hidden>Retry race sync</button>
+    </section>
     <div class="profile-actions">
       <button id="profile-cancel" type="button">Cancel</button>
       <button id="profile-save" class="profile-save" type="button">Save profile</button>
@@ -255,6 +328,129 @@ import { createRumbleModel, createRumblePlayer } from './src/rumble.mjs';
 import { VERSION } from './src/version.mjs';
 document.querySelector('.subtitle').textContent += ' · v' + VERSION;
 const $ = id => document.getElementById(id);
+const HOME_ACCOUNT_API = "https://hockey-multiplayer.onrender.com";
+const HOME_ACCOUNT_TOKEN_KEY = "homeAccountToken";
+let homeAccountToken = "";
+let homeAccountProfile = null;
+let homePlayerLivery = null;
+try {
+  const savedTeam = JSON.parse(sessionStorage.getItem("homeAccountTeam") || "null");
+  if (savedTeam && /^#[0-9a-f]{6}$/i.test(savedTeam.paint) && /^#[0-9a-f]{6}$/i.test(savedTeam.accent) && /^#[0-9a-f]{6}$/i.test(savedTeam.helmet)) {
+    homePlayerLivery = { paint: parseInt(savedTeam.paint.slice(1), 16), accent: parseInt(savedTeam.accent.slice(1), 16), helmet: parseInt(savedTeam.helmet.slice(1), 16) };
+  }
+} catch {}
+let homeGameSessionId = null;
+let homeGameStartPromise = null;
+let homeRaceReportedForCurrentSession = false;
+let homePendingRaceResult = null;
+let homeRaceSubmitPromise = null;
+try { homeAccountToken = sessionStorage.getItem(HOME_ACCOUNT_TOKEN_KEY) || ""; } catch {}
+async function homeAccountRequest(path, options = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (homeAccountToken && !options.anonymous) headers.Authorization = "Bearer " + homeAccountToken;
+  const response = await fetch(HOME_ACCOUNT_API + path, {
+    method: options.method || "GET", headers, cache: "no-store",
+    ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {})
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { const error = new Error(data.error || "Home account request failed (" + response.status + ")."); error.status = response.status; throw error; }
+  return data;
+}
+function setHomeAccountStatus(message, error = false) {
+  const status = $("f1-home-status"); if (!status) return;
+  status.textContent = message || ""; status.classList.toggle("error", !!error);
+}
+function renderHomeAccount() {
+  const connected = $("f1-home-connected"), form = $("f1-home-signin"), retry = $("f1-home-retry");
+  if (!connected || !form) return;
+  const signedIn = !!homeAccountToken && !!homeAccountProfile;
+  connected.hidden = !signedIn; form.hidden = signedIn;
+  if (signedIn) {
+    const p = homeAccountProfile;
+    $("f1-home-account-summary").textContent = "Connected as " + (p.username || p.name || "Player") + " · Level " + (p.level || 1) + " · " + Number(p.coins || 0).toLocaleString() + " Home Coins";
+    const team=p.f1Team||null;
+    homePlayerLivery=team?{paint:parseInt(team.paint.slice(1),16),accent:parseInt(team.accent.slice(1),16),helmet:parseInt(team.helmet.slice(1),16)}:null;
+    try { if(team) sessionStorage.setItem("homeAccountTeam",JSON.stringify(team)); else sessionStorage.removeItem("homeAccountTeam"); } catch {}
+    if(team){
+      $("f1-home-team-name").value=team.name||"";
+      $("f1-home-team-paint").value=team.paint||"#17385c";
+      $("f1-home-team-accent").value=team.accent||"#39e0ae";
+      $("f1-home-team-helmet").value=team.helmet||"#f2bf5e";
+      $("f1-home-team-number").value=String(team.number??7);
+    }
+    const trackHost=$("f1-home-championship-tracks");
+    if(trackHost&&!trackHost.childElementCount){
+      trackHost.innerHTML=Object.entries(CIRCUITS).map(([id,circuit],index)=>'<label><input type="checkbox" value="'+id+'" '+(index<5?"checked":"")+'><span>'+circuit.name+'</span></label>').join("");
+    }
+    const championship=p.f1Career?.championship||null;
+    const summary=$("f1-home-championship-summary"),nextButton=$("f1-home-championship-next");
+    if(championship){
+      const total=championship.rounds?.length||0,completed=Math.min(total,Number(championship.currentRound)||0),active=championship.status==="active";
+      summary.textContent=championship.name+" · Round "+completed+" / "+total+" · "+Number(championship.points||0)+" points · "+Number(championship.wins||0)+" wins · "+(active?"In progress":"Season complete");
+      nextButton.hidden=!active;
+      if(active){const nextId=championship.rounds[completed],nextCircuit=CIRCUITS[nextId];nextButton.textContent=nextCircuit?"START ROUND "+(completed+1)+" · "+nextCircuit.name:"START NEXT ROUND";}
+    }else{
+      summary.textContent="No active championship. Create one to begin a saved multi-round season.";
+      nextButton.hidden=true;
+    }
+  }
+  if (retry) retry.hidden = !homePendingRaceResult || !signedIn;
+}
+async function refreshHomeAccount() {
+  if (!homeAccountToken) { renderHomeAccount(); return; }
+  try {
+    const data = await homeAccountRequest("/account/me");
+    homeAccountProfile = data.profile || null; renderHomeAccount();
+  } catch (error) {
+    if (error.status === 401) {
+      homeAccountToken = ""; homeAccountProfile = null;
+      try { sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY); } catch {}
+      renderHomeAccount();
+    }
+    setHomeAccountStatus(error.message || "Could not load your Home account.", true);
+  }
+}
+async function ensureHomeF1Session() {
+  if (!homeAccountToken || !raceSession) return null;
+  if (homeGameSessionId) return homeGameSessionId;
+  if (homeGameStartPromise) return homeGameStartPromise;
+  homeGameStartPromise = (async () => {
+    const active = await homeAccountRequest("/account/game/active");
+    if (active.active) {
+      if (active.gameId !== "f1-simulator") throw new Error("Finish your other Home game session before syncing F1.");
+      homeGameSessionId = active.sessionId;
+    } else {
+      const started = await homeAccountRequest("/account/game/start", { method: "POST", body: { gameId: "f1-simulator" } });
+      homeGameSessionId = started.sessionId;
+    }
+    return homeGameSessionId;
+  })().finally(() => { homeGameStartPromise = null; });
+  return homeGameStartPromise;
+}
+async function submitHomePendingRaceResult() {
+  if (!homeAccountToken || !homePendingRaceResult) return;
+  if (homeRaceSubmitPromise) return homeRaceSubmitPromise;
+  homeRaceSubmitPromise = (async () => {
+    const sessionId = await ensureHomeF1Session();
+    if (!sessionId) return;
+    const response = await homeAccountRequest("/account/game/complete", {
+      method: "POST", body: { sessionId, score: 0, f1Result: homePendingRaceResult }
+    });
+    homeGameSessionId = null; homePendingRaceResult = null;
+    const latest = await homeAccountRequest("/account/me");
+    homeAccountProfile = latest.profile || homeAccountProfile;
+    renderHomeAccount();
+    setHomeAccountStatus("Race saved to Home · +" + (response.xpEarned || 0) + " XP · +" + (response.coinEarned || 0) + " Home Coins");
+  })().catch(error => {
+    setHomeAccountStatus((error.message || "Race progress could not sync.") + " Your result is kept here; you can retry.", true);
+    renderHomeAccount();
+  }).finally(() => { homeRaceSubmitPromise = null; });
+  return homeRaceSubmitPromise;
+}
+async function loadHomeAccount() {
+  await refreshHomeAccount();
+  if (homeAccountToken && sessionStarted && raceSession) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
+}
 const canvas = $('track');
 let sim, paused = true, overview = false, cockpit = false, previousTime = null, snapCamera = true;
 let sessionStarted = false, lastRenderAt = 0, lastHudUpdate = 0, fpsWindowStart = performance.now(), renderedFrames = 0, measuredFps = 0;
@@ -439,6 +635,69 @@ $('profile-save').addEventListener('click', async () => {
   previewProfilePhoto(pendingProfilePhoto !== undefined ? pendingProfilePhotoUrl : driverProfile.avatarUrl, name);
   if (photoSaved) $('profile-status').textContent = 'Profile saved on this device.';
 });
+$("f1-home-signin").addEventListener("submit", async event => {
+  event.preventDefault();
+  const button = $("f1-home-connect"); button.disabled = true;
+  setHomeAccountStatus("Connecting to your Home player account…");
+  try {
+    const result = await homeAccountRequest("/account/login", { method: "POST", anonymous: true, body: {
+      username: $("f1-home-username").value.trim(), password: $("f1-home-password").value
+    }});
+    homeAccountToken = result.token; homeAccountProfile = result.profile || null;
+    try { sessionStorage.setItem(HOME_ACCOUNT_TOKEN_KEY, homeAccountToken); } catch {}
+    $("f1-home-password").value = ""; renderHomeAccount();
+    setHomeAccountStatus("Connected. F1 race results can now update your Home profile.");
+    if (sessionStarted && raceSession) await ensureHomeF1Session();
+    await submitHomePendingRaceResult();
+  } catch (error) { setHomeAccountStatus(error.message || "Could not connect your account.", true); }
+  finally { button.disabled = false; }
+});
+$("f1-home-championship-create").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const rounds=[...$("f1-home-championship-tracks").querySelectorAll('input[type="checkbox"]:checked')].map(input=>input.value);
+  if(rounds.length<3||rounds.length>10){setHomeAccountStatus("Choose between 3 and 10 circuits for your championship.",true);return;}
+  const button=$("f1-home-championship-save");button.disabled=true;
+  setHomeAccountStatus("Creating your championship…");
+  try{
+    const result=await homeAccountRequest("/account/f1/championship",{method:"POST",body:{name:$("f1-home-championship-name").value.trim(),rounds}});
+    homeAccountProfile.f1Career=result.f1Career;renderHomeAccount();
+    setHomeAccountStatus("Championship created. Your first round is ready.");
+  }catch(error){setHomeAccountStatus(error.message||"Could not create your championship.",true);}
+  finally{button.disabled=false;}
+});
+$("f1-home-championship-next").addEventListener("click",()=>{
+  const championship=homeAccountProfile?.f1Career?.championship;
+  const nextId=championship?.rounds?.[championship.currentRound];
+  if(!nextId||!CIRCUITS[nextId])return;
+  $("menu-track-select").value=nextId;
+  $("menu-session-type").value="race";
+  launchFromMenu();
+});
+$("f1-home-team-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const button=$("f1-home-team-save");button.disabled=true;setHomeAccountStatus("Saving your racing team…");
+  try{
+    const result=await homeAccountRequest("/account/f1/team",{method:"POST",body:{
+      name:$("f1-home-team-name").value.trim(),paint:$("f1-home-team-paint").value,
+      accent:$("f1-home-team-accent").value,helmet:$("f1-home-team-helmet").value,
+      number:Number($("f1-home-team-number").value)
+    }});
+    homeAccountProfile.f1Team=result.team;
+    try { sessionStorage.setItem("homeAccountTeam",JSON.stringify(result.team)); } catch {}
+    homePlayerLivery={paint:parseInt(result.team.paint.slice(1),16),accent:parseInt(result.team.accent.slice(1),16),helmet:parseInt(result.team.helmet.slice(1),16)};
+    setHomeAccountStatus("Team saved. Refresh the simulator to apply your new livery to the car.");
+    renderHomeAccount();
+  }catch(error){setHomeAccountStatus(error.message||"Could not save your team.",true);}
+  finally{button.disabled=false;}
+});
+$("f1-home-disconnect").addEventListener("click", async () => {
+  try { await homeAccountRequest("/account/logout", { method: "POST", body: {} }); } catch {}
+  homeAccountToken = ""; homeAccountProfile = null; homeGameSessionId = null; homePlayerLivery = null;
+  try { sessionStorage.removeItem("homeAccountTeam"); } catch {}
+  try { sessionStorage.removeItem(HOME_ACCOUNT_TOKEN_KEY); } catch {}
+  renderHomeAccount(); setHomeAccountStatus("Home account disconnected from this browser.");
+});
+$("f1-home-retry").addEventListener("click", submitHomePendingRaceResult);
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !$('driver-profile-modal').hidden) closeDriverProfile();
 });
@@ -484,7 +743,32 @@ await nextPaint();
 const { surfaceAt, barrierAt } = track;
 const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined);
 const raceSession = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
-const requestedOpponentCount = Number.parseInt(pageQuery.get('opponents') || String(DEFAULT_GRID.length), 10);
+const WEATHER_MODES = new Set(['clear', 'cloudy', 'light-rain', 'heavy-rain', 'changing']);
+let weatherMode = WEATHER_MODES.has(pageQuery.get('weather')) ? pageQuery.get('weather') : 'clear';
+let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
+function weatherTargets() {
+  if (weatherMode === 'changing') {
+    const phase = weatherElapsed % 240;
+    if (phase < 55) return { wetness: 0, rain: 0, label: 'Dry' };
+    if (phase < 125) return { wetness: 0.38, rain: 0.38, label: 'Light rain' };
+    if (phase < 185) return { wetness: 0.88, rain: 0.82, label: 'Heavy rain' };
+    return { wetness: 0.38, rain: 0.3, label: 'Light rain' };
+  }
+  return ({
+    clear: { wetness: 0, rain: 0, label: 'Dry' },
+    cloudy: { wetness: 0.04, rain: 0, label: 'Cloudy' },
+    'light-rain': { wetness: 0.38, rain: 0.38, label: 'Light rain' },
+    'heavy-rain': { wetness: 0.88, rain: 0.82, label: 'Heavy rain' }
+  })[weatherMode] || { wetness: 0, rain: 0, label: 'Dry' };
+}
+function updateWeather(delta) {
+  if (delta > 0) weatherElapsed += delta;
+  const target = weatherTargets(), blendWet = 1 - Math.exp(-Math.max(0, delta) / 30), blendRain = 1 - Math.exp(-Math.max(0, delta) / 6);
+  weatherWetness += (target.wetness - weatherWetness) * blendWet;
+  weatherRain += (target.rain - weatherRain) * blendRain;
+  weatherLabel = target.label;
+  for (const entry of sim.entries) entry.car.weatherWetness = weatherWetness;
+}const requestedOpponentCount = Number.parseInt(pageQuery.get('opponents') || String(DEFAULT_GRID.length), 10);
 let selectedOpponentCount = Number.isFinite(requestedOpponentCount) ? Math.max(1, Math.min(DEFAULT_GRID.length, requestedOpponentCount)) : DEFAULT_GRID.length;
 let opponentCount = raceSession ? selectedOpponentCount : 0;
 let autopilot = false, command = { throttle: 0, brake: 0, steer: 0 }, opponents = opponentCount > 0;
@@ -540,7 +824,7 @@ function reset() {
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
   sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
-    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : 'hard'] } });
+    runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, options: { weatherWetness: () => weatherWetness }, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : tyre === 'wet' ? 'intermediate' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
   wearSkins(cars.map((_, i) => i));
@@ -552,6 +836,8 @@ function reset() {
     r.wheelAngle.fill(0);
   });
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
+  homeRaceReportedForCurrentSession = false;
+  if (sessionStarted && raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
 }
 // Paddle shift: switches your car (only) to the manual gearbox and takes you off
 // the autopilot; a refused shift (over-rev, mid-shift, gear 1/8, reverse) flashes the gear.
@@ -696,7 +982,26 @@ scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
 const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode, qualityScale: performanceScale }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
-// Real circuits span kilometres: see the far side of the layout from the overview.
+const rainPosition = new Float32Array(180 * 3);
+for (let i = 0; i < 180; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 50; rainPosition[i * 3 + 1] = 4 + Math.random() * 15; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 50; }
+const rainGeometry = new THREE.BufferGeometry(); rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPosition, 3));
+const rainMaterial = new THREE.PointsMaterial({ color: 0xc6dce8, size: 0.085, transparent: true, opacity: 0.3, depthWrite: false, sizeAttenuation: true });
+const rainPoints = new THREE.Points(rainGeometry, rainMaterial); rainPoints.frustumCulled = false; rainPoints.visible = false; world.add(rainPoints);
+function updateWeatherVisuals(delta) {
+  rainPoints.visible = weatherRain > 0.015;
+  rainMaterial.opacity = 0.12 + weatherRain * 0.28;
+  if (!rainPoints.visible || delta <= 0) return;
+  const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (19 + weatherRain * 12) * delta;
+  for (let i = 0; i < 180; i++) {
+    const k = i * 3; positions[k + 1] -= fall;
+    if (positions[k + 1] < 0) {
+      positions[k] = car.x + (Math.random() - 0.5) * 50;
+      positions[k + 1] = 9 + Math.random() * 14;
+      positions[k + 2] = -car.y + (Math.random() - 0.5) * 50;
+    }
+  }
+  rainGeometry.attributes.position.needsUpdate = true;
+}// Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
 // Racing-line chevrons (chevrons.mjs, after the RISE sim's): the speed plan of the
 // autopilot that drives your car, rebuilt when a reset brings a new one.
@@ -804,7 +1109,7 @@ function buildOpponentProxy({ paint = 0x0e1626, accent = 0x39e0ae } = {}) {
   return { group, body, wheels, driver: [], drsFlap, mirrors: [], cockpitSides: [] };
 }
 const cars = [
-  { model: buildCar(), lowModel: buildOpponentProxy({ paint: 0x0e1626, accent: 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
+  { model: buildCar(homePlayerLivery || undefined), lowModel: buildOpponentProxy({ paint: homePlayerLivery?.paint ?? 0x0e1626, accent: homePlayerLivery?.accent ?? 0x39e0ae }), wheelAngle: [0, 0, 0, 0], lowActive: false },
   ...DEFAULT_GRID.map((spec, i) => ({
     model: buildCar({ paint: spec.color, accent: spec.accent, helmet: spec.accent, index: i + 1 }),
     lowModel: buildOpponentProxy({ paint: spec.color, accent: spec.accent }),
@@ -1107,6 +1412,7 @@ function render(dt = 0, now = performance.now()) {
   $('mini-unit').textContent = mph ? 'mph' : 'km/h';
   $('mini-gear').textContent = c.gear < 0 ? 'R' : String(c.gear);
   $('mini-lap').textContent = ts.started ? `L${ts.lap}` : 'OUT';
+  $('mini-weather').textContent = weatherWetness > 0.65 ? 'WET' : weatherWetness > 0.12 ? 'DAMP' : weatherLabel === 'Cloudy' ? 'CLOUD' : 'DRY';
   $('mini-fps').textContent = measuredFps ? String(measuredFps) : '—';
 }
 function frame(now) {
@@ -1158,10 +1464,26 @@ function frame(now) {
     // send a forward-path autopilot's throttle through a reverse gearbox.
     const forwardRecovery = autopilot && sim.car.gear < 0;
     if (forwardRecovery) command = { throttle: 0, brake: 1, steer: 0, reverse: false };
+    updateWeather(dt);
     sim.advance((now - previousTime) / 1000, command, surfaceAt, barrierAt);
     // On autopilot the race's traffic-aware driver chooses the player's inputs.
     if (autopilot && !forwardRecovery) command = sim.entries[0].command ?? { throttle: 0, brake: 0, steer: 0 };
+    updateWeatherVisuals(dt);
     timer.update(sim.car, { wallsOnly: assistOn });
+    if (raceSession && sim.finish.done && !homeRaceReportedForCurrentSession) {
+      const player = sim.classification().find(entry => entry.player);
+      if (player) {
+        homeRaceReportedForCurrentSession = true;
+        homePendingRaceResult = {
+          position: player.position, laps: player.laps, finished: !!player.finished && !player.dsq,
+          bestLapMs: timer.state.bestLap === null ? null : Math.round(timer.state.bestLap * 1000),
+          timeMs: player.total === null ? null : Math.round(player.total * 1000),
+          circuit: track.name || trackDisplayName,
+          circuitId: circuitKey || ""
+        };
+        submitHomePendingRaceResult().catch(() => {});
+      }
+    }
   }
   if (audio) {
     // Quieter from the overview camera; silent while paused or muted.
@@ -1192,6 +1514,7 @@ function startSessionNow() {
   $('main-menu').hidden = true; $('pause-menu').hidden = true; $('mini-hud').hidden = false;
   document.body.classList.add('session-live'); document.body.classList.remove('race-paused');
   reset(); pause(false);
+  if (raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
 }
 function showMainMenu() {
   sessionStarted = false; pause(true);
@@ -1228,6 +1551,8 @@ function launchFromMenu() {
   }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
+  const weather = $('menu-weather').value; if (WEATHER_MODES.has(weather)) params.set('weather', weather); else params.delete('weather');
+  const tyre = $('menu-tyre').value; if (TIRE_COMPOUNDS[tyre]) params.set('tyre', tyre); else params.delete('tyre');
   const quality = $('menu-quality').value;
   if (quality === 'balanced') params.delete('quality'); else params.set('quality', quality);
   if (quality === 'manual') params.set('scale', (Number($('menu-quality-slider').value) / 100).toFixed(2));
@@ -1242,6 +1567,8 @@ function launchFromMenu() {
 }
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
+$('menu-weather').value = weatherMode;
+$('menu-tyre').value = TIRE_COMPOUNDS[pageQuery.get('tyre')] ? pageQuery.get('tyre') : 'medium';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
 $('menu-opponents').value = String(selectedOpponentCount);
 $('menu-opponents').disabled = $('menu-session-type').value === 'practice';
@@ -1271,6 +1598,7 @@ document.querySelectorAll('#pause-controls [data-original-control]').forEach(but
   });
 });
 await loadDriverProfile();
+loadHomeAccount().catch(error => setHomeAccountStatus(error.message || "Home account is unavailable.", true));
 reset(); pause(true); resize();
 await nextPaint();
 setLoadingStage(circuitKey ? 'TRACK READY' : 'GAME READY', 'Ready to race', 'The simulator and circuit are ready', 100);
