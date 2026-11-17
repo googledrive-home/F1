@@ -1154,6 +1154,7 @@ function updateWeatherVisuals(delta) {
     rainGeometry.attributes.position.needsUpdate = true;
   }
   updateLensWeather(delta);
+  updateCarDroplets(delta);
 }// Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
 // Racing-line chevrons (chevrons.mjs, after the RISE sim's): the speed plan of the
@@ -1269,6 +1270,38 @@ const cars = [
     wheelAngle: [0, 0, 0, 0], lowActive: false
   }))
 ].map(item => { scene.add(item.model.group, item.lowModel.group); item.lowModel.group.visible = false; return item; });
+
+// Tiny clearcoat droplets sit on the player's bodywork and slide rearward with the airflow.
+function createCarDropletLayer(parent, seed = 0) {
+  const group = new THREE.Group(); group.name = 'car-rain-droplets'; parent.add(group);
+  const material = new THREE.MeshPhysicalMaterial({ color: 0xd6efff, metalness: 0.12, roughness: 0.025, clearcoat: 1, clearcoatRoughness: 0.015, transparent: true, opacity: 0.82, depthWrite: false });
+  const geometry = new THREE.SphereGeometry(0.025, 9, 7);
+  const droplets = [];
+  for (let i = 0; i < 24; i++) {
+    const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
+    const home = new THREE.Vector3(1.25 - (row % 6) * 0.52, 0.54 + (row % 3) * 0.11, side * (0.16 + (row % 4) * 0.11));
+    const mesh = new THREE.Mesh(geometry, material.clone());
+    mesh.scale.set(0.72 + (i % 3) * 0.2, 0.9 + (i % 4) * 0.22, 0.65 + (i % 2) * 0.22);
+    mesh.position.copy(home); mesh.userData.home = home; mesh.userData.seed = (i + seed) * 0.37; group.add(mesh); droplets.push(mesh);
+  }
+  group.visible = false;
+  return { group, droplets };
+}
+const playerCarDropletLayers = [createCarDropletLayer(cars[0].model.group),createCarDropletLayer(cars[0].lowModel.group,1)];
+function updateCarDroplets(delta) {
+  const visible = weatherRain > 0.035, speed = Math.max(0,sim?.car?.telemetry?.speed||0);
+  for (const layer of playerCarDropletLayers) {
+    layer.group.visible = visible;
+    for (const drop of layer.droplets) {
+      const home = drop.userData.home;
+      const travel = (0.06 + weatherRain * 0.42 + speed * 0.007) * Math.max(0,delta);
+      drop.position.x -= travel * (0.75 + (drop.userData.seed % 0.7));
+      drop.position.z += Math.sin(drop.userData.seed + performance.now()*0.0004) * travel * 0.08;
+      if (drop.position.x < -1.95) { drop.position.copy(home); drop.position.x += (drop.userData.seed%0.4); }
+      drop.material.opacity = visible ? 0.5 + Math.min(0.42,weatherRain*0.42) : 0;
+    }
+  }
+}
 // skins[i]: the livery entry i is drawn in (entry 0 is yours). Taking a grid slot puts you
 // in the car there, so the two entries swap liveries: you drive on in its colours and your
 // old car carries on with the AI. Reset puts you back in the navy car.
