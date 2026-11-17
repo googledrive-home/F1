@@ -15,6 +15,12 @@ test('evolving weather passes through dry, light rain, heavy rain and showers', 
   assert.deepEqual(times.map(elapsed=>weatherAtTime({mode:'changing',evolution:'normal',elapsed}).label),expected);
 });
 
+test('changing conditions still evolve when the explicit cycle-speed setting is off', () => {
+  assert.equal(weatherAtTime({mode:'changing',evolution:'off',elapsed:0}).label,'Dry');
+  assert.equal(weatherAtTime({mode:'changing',evolution:'off',elapsed:60}).label,'Light rain');
+  assert.equal(weatherAtTime({mode:'changing',evolution:'off',elapsed:120}).label,'Heavy rain');
+});
+
 test('weather evolution speed changes the phase duration', () => {
   assert.equal(weatherAtTime({mode:'clear',evolution:'slow',elapsed:60}).label,'Dry');
   assert.equal(weatherAtTime({mode:'clear',evolution:'normal',elapsed:60}).label,'Light rain');
