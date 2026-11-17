@@ -15,8 +15,9 @@ export function weatherAtTime({ mode = 'clear', evolution = 'off', elapsed = 0, 
   const strength = Math.max(0, Math.min(1.5, Number(intensity) || 0));
   let target = STATIC_PRESETS[mode] || STATIC_PRESETS.clear;
   const cycle = CYCLE_SECONDS[evolution] ?? 0;
-  if (cycle > 0) {
-    const phase = ((Number(elapsed) || 0) % cycle) / cycle;
+  const effectiveCycle = cycle || (mode === 'changing' ? CYCLE_SECONDS.normal : 0);
+  if (effectiveCycle > 0) {
+    const phase = ((Number(elapsed) || 0) % effectiveCycle) / effectiveCycle;
     if (phase < 0.25) target = { wetness: 0.02, rain: 0, label: 'Dry' };
     else if (phase < 0.5) target = { wetness: 0.36, rain: 0.34, label: 'Light rain' };
     else if (phase < 0.75) target = { wetness: 0.88, rain: 0.9, label: 'Heavy rain' };
