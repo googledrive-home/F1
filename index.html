@@ -814,25 +814,32 @@ const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined
 const raceSession = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
 const WEATHER_MODES = new Set(['clear', 'cloudy', 'light-rain', 'heavy-rain', 'changing']);
 let weatherMode = WEATHER_MODES.has(pageQuery.get('weather')) ? pageQuery.get('weather') : 'clear';
+const WEATHER_EVOLUTION = new Set(['off','slow','normal','fast']);
+let weatherEvolution = WEATHER_EVOLUTION.has(pageQuery.get('evolution')) ? pageQuery.get('evolution') : 'normal';
+let weatherIntensity = Math.max(0,Math.min(1.5,(Number(pageQuery.get('rainIntensity'))||100)/100));
 let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
 function weatherTargets() {
-  if (weatherMode === 'changing') {
-    const phase = weatherElapsed % 240;
-    if (phase < 55) return { wetness: 0, rain: 0, label: 'Dry' };
-    if (phase < 125) return { wetness: 0.38, rain: 0.38, label: 'Light rain' };
-    if (phase < 185) return { wetness: 0.88, rain: 0.82, label: 'Heavy rain' };
-    return { wetness: 0.38, rain: 0.3, label: 'Light rain' };
+  if (weatherMode === 'changing' || weatherEvolution !== 'off') {
+    const cycle = ({off:240,slow:480,normal:240,fast:120})[weatherEvolution] || 240;
+    const phase = (weatherElapsed % cycle) / cycle;
+    let target;
+    if (phase < 0.25) target = { wetness: 0.02, rain: 0, label: 'Dry' };
+    else if (phase < 0.5) target = { wetness: 0.36, rain: 0.34, label: 'Light rain' };
+    else if (phase < 0.75) target = { wetness: 0.88, rain: 0.9, label: 'Heavy rain' };
+    else target = { wetness: 0.52, rain: 0.42, label: 'Showers' };
+    return { ...target, wetness: Math.min(1,target.wetness*weatherIntensity), rain: target.rain*weatherIntensity };
   }
-  return ({
+  const target = ({
     clear: { wetness: 0, rain: 0, label: 'Dry' },
     cloudy: { wetness: 0.04, rain: 0, label: 'Cloudy' },
     'light-rain': { wetness: 0.38, rain: 0.38, label: 'Light rain' },
     'heavy-rain': { wetness: 0.88, rain: 0.82, label: 'Heavy rain' }
   })[weatherMode] || { wetness: 0, rain: 0, label: 'Dry' };
+  return { ...target, wetness: Math.min(1,target.wetness*weatherIntensity), rain: target.rain*weatherIntensity };
 }
 function updateWeather(delta) {
   if (delta > 0) weatherElapsed += delta;
-  const target = weatherTargets(), blendWet = 1 - Math.exp(-Math.max(0, delta) / 30), blendRain = 1 - Math.exp(-Math.max(0, delta) / 6);
+  const target = weatherTargets(), blendWet = 1 - Math.exp(-Math.max(0, delta) / 34), blendRain = 1 - Math.exp(-Math.max(0, delta) / 4.5);
   weatherWetness += (target.wetness - weatherWetness) * blendWet;
   weatherRain += (target.rain - weatherRain) * blendRain;
   weatherLabel = target.label;
