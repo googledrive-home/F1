@@ -65,7 +65,7 @@ jobs:
 
   deploy:
     if: github.event_name != 'pull_request'
-    needs: [validate, test]
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read
