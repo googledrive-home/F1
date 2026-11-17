@@ -267,7 +267,7 @@ test('a finisher who never changes compound is disqualified and classified last'
 test('the player can request a stop and a compound; the autopilot boxes and fits it', () => {
   const race = createRace(track);
   race.requestPit('soft');
-  race.requestPit('intermediate'); // unknown compounds are ignored
+  race.requestPit('ultrasoft'); // unknown compounds are ignored
   assert.equal(race.entries[0].pitRequest, 'soft');
   for (let i = 0; i < 70 / FIXED_DT && !race.entries[0].stops.length; i++) race.advance(FIXED_DT, null, track.surfaceAt, track.barrierAt);
   const me = race.entries[0];
