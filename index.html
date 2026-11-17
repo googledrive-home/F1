@@ -1730,6 +1730,68 @@ function openMainMenuFromPause() {
   $('pause-menu').hidden = true; $('mini-hud').hidden = true; $('main-menu').hidden = false;
   document.body.classList.remove('session-live', 'race-paused');
 }
+function menuPreviewPoints() {
+  const key=$('menu-track-select').value, definition=key?CIRCUITS[key]:null, raw=definition?.points;
+  if(raw&&raw.length>=8){
+    const points=[],pairStep=Math.max(1,Math.floor((raw.length/2)/420));
+    if(Array.isArray(raw[0])) for(let i=0;i<raw.length;i+=pairStep)points.push([Number(raw[i][0]),Number(raw[i][1])]);
+    else for(let i=0;i<raw.length;i+=2*pairStep)points.push([Number(raw[i]),Number(raw[i+1])]);
+    if(points.length>6)return points;
+  }
+  return outline;
+}
+function drawMenuTrackPreview() {
+  const preview=$('menu-track-preview'),ctx=preview.getContext('2d'),w=preview.width,h=preview.height;
+  ctx.clearRect(0,0,w,h);
+  const points=menuPreviewPoints();
+  if(!points?.length)return;
+  const bounds=points.reduce((b,p)=>({minX:Math.min(b.minX,p[0]),maxX:Math.max(b.maxX,p[0]),minY:Math.min(b.minY,p[1]),maxY:Math.max(b.maxY,p[1])}),{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity});
+  const pad=28,scale=Math.min((w-pad*2)/Math.max(1,bounds.maxX-bounds.minX),(h-pad*2)/Math.max(1,bounds.maxY-bounds.minY));
+  const ox=(w-(bounds.maxX-bounds.minX)*scale)/2,oy=(h-(bounds.maxY-bounds.minY)*scale)/2;
+  const X=x=>ox+(x-bounds.minX)*scale,Y=y=>h-oy-(y-bounds.minY)*scale;
+  const path=()=>{ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y)));ctx.closePath();};
+  ctx.lineJoin=ctx.lineCap='round';path();ctx.strokeStyle='#02080d';ctx.lineWidth=25;ctx.stroke();
+  path();ctx.strokeStyle='#d5e1e866';ctx.lineWidth=18;ctx.stroke();
+  path();ctx.strokeStyle='#587485';ctx.lineWidth=12;ctx.stroke();
+  path();ctx.strokeStyle='#6fffc3';ctx.lineWidth=1.8;ctx.setLineDash([4,6]);ctx.stroke();ctx.setLineDash([]);
+  for(const fraction of [1/3,2/3]){
+    const i=Math.floor(points.length*fraction),[x,y]=points[i];ctx.beginPath();ctx.arc(X(x),Y(y),4,0,Math.PI*2);ctx.fillStyle='#ffc86f';ctx.fill();
+    ctx.beginPath();ctx.arc(X(x),Y(y),7,0,Math.PI*2);ctx.strokeStyle='#ffc86f66';ctx.lineWidth=2;ctx.stroke();
+  }
+  const [sx,sy]=points[0],[nx,ny]=points[1],dx=nx-sx,dy=ny-sy,len=Math.hypot(dx,dy)||1,tick=10;
+  ctx.beginPath();ctx.moveTo(X(sx)-dy/len*tick,Y(sy)+dx/len*tick);ctx.lineTo(X(sx)+dy/len*tick,Y(sy)-dx/len*tick);ctx.lineWidth=4;ctx.strokeStyle='#f6fbff';ctx.stroke();
+}
+function updateGrandPrixPreview() {
+  const key=$('menu-track-select').value,definition=key?CIRCUITS[key]:null,laps=Math.max(1,Math.min(30,Math.round(Number($('menu-laps').value)||3)));
+  const name=definition?.name||'Stadium test track',length=Number(definition?.length||track.length),location=definition?.location||'Home test circuit';
+  $('menu-preview-track-name').textContent=name;
+  $('menu-preview-track-length').textContent=(length/1000).toFixed(2)+' km';
+  $('menu-preview-turns').textContent=location;
+  $('menu-preview-laps-title').textContent=laps+' lap Grand Prix';
+  $('menu-preview-laps-total').textContent=laps+' LAPS';
+  const chips=Array.from({length:Math.min(laps,10)},(_,i)=>'<span class="menu-lap-chip"><small>LAP</small>'+(i+1)+'</span>').join('');
+  $('menu-lap-preview').innerHTML=chips+(laps>10?'<span class="menu-lap-overflow">+'+(laps-10)+'</span>':'');
+  const weather=$('menu-weather').value,intensity=Number($('menu-rain-intensity').value)||0,evolution=$('menu-weather-evolution').value;
+  const previews={
+    clear:['☀','Clear conditions','Dry track · maximum dry grip · clear visibility'],
+    cloudy:['☁','Cloudy conditions','Dry surface · soft daylight · stable grip'],
+    'light-rain':['🌦','Light rain','Damp racing line · intermediate grip · spray'],
+    'heavy-rain':['🌧','Heavy rain','Wet surface · full wet tyres recommended · reduced visibility'],
+    changing:['⛈','Evolving weather','Rain bands move through the race · puddles build and drain']
+  };
+  const info=previews[weather]||previews.clear,box=$('menu-weather-preview');
+  box.classList.toggle('raining',intensity>5&&(weather==='light-rain'||weather==='heavy-rain'||weather==='changing'));
+  box.classList.toggle('sunny',weather==='clear');
+  $('menu-weather-preview').querySelector('.weather-preview-icon').textContent=info[0];
+  $('menu-weather-preview-title').textContent=info[1];
+  $('menu-weather-preview-copy').textContent=info[2]+(weather==='changing'?' · '+evolution+' evolution':intensity<5?' · rain intensity 0%':' · intensity '+intensity+'%');
+  const practice=$('menu-session-type').value==='practice';
+  $('menu-ai-skill').disabled=practice;$('menu-grid-position').disabled=practice;$('menu-opponents').disabled=practice;
+  const maxGrid=practice?1:Math.min(5,Number($('menu-opponents').value||1)+1);
+  [...$('menu-grid-position').options].forEach(option=>option.disabled=Number(option.value)>maxGrid);
+  if(Number($('menu-grid-position').value)>maxGrid)$('menu-grid-position').value=String(maxGrid);
+  drawMenuTrackPreview();
+}
 function launchFromMenu() {
   const params = new URLSearchParams(location.search);
   const selectedTrack = $('menu-track-select').value;
@@ -1787,6 +1849,9 @@ $('menu-quality').addEventListener('change', updateManualQualityControls);
 $('menu-quality-slider').addEventListener('input', updateManualQualityControls);
 $('menu-rain-intensity').addEventListener('input',()=>{$('menu-rain-value').textContent=$('menu-rain-intensity').value+'%';updateGrandPrixPreview();});
 updateManualQualityControls();
+['menu-track-select','menu-session-type','menu-opponents','menu-laps','menu-weather','menu-weather-evolution','menu-ai-skill','menu-grid-position','menu-tyre'].forEach(id=>$(id).addEventListener('change',updateGrandPrixPreview));
+$('menu-laps').addEventListener('input',updateGrandPrixPreview);
+updateGrandPrixPreview();
 $('start-session').addEventListener('click', launchFromMenu);
 $('menu-profile').addEventListener('click', () => $('profile-open').click());
 $('pause-open').addEventListener('click', showPauseMenu);
