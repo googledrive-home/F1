@@ -143,6 +143,57 @@ body.session-live main{height:100vh}
 .home-championship-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:180px;overflow:auto;padding:8px;border:1px solid #ffffff1c;border-radius:8px;background:#08111a}
 .home-championship-tracks label{display:flex;align-items:center;gap:6px;padding:5px;color:#c7d6e2;font-size:9px;cursor:pointer}
 .home-championship-tracks input{accent-color:#39e0ae}
+
+/* Race clock and camera-weather screen effects. */
+.race-clock-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:3px 0 7px;padding-bottom:6px;border-bottom:1px solid #ffffff1b}
+.race-clock-row span{font-size:8px;letter-spacing:.16em;color:#8fa5b6;font-weight:850}
+.race-clock-row strong{font-size:14px;color:#6fffc3;font-variant-numeric:tabular-nums}
+.lens-weather{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;mix-blend-mode:screen}
+#mini-hud .clock-stat{min-width:78px}
+#mini-hud #mini-clock{font-size:13px;color:#6fffc3;white-space:nowrap}
+#menu-rain-intensity{accent-color:#6fffc3}
+.menu-field output{color:#6fffc3;font-size:10px}
+.menu-preview-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:12px;margin:2px 0 18px}
+.menu-preview-card{min-width:0;padding:13px;border:1px solid #ffffff1e;border-radius:15px;background:linear-gradient(145deg,#10212d,#0a1621);overflow:hidden;animation:menu-card-enter .55s cubic-bezier(.2,.8,.2,1) both}
+.menu-preview-card:nth-child(2){animation-delay:.08s}
+.menu-preview-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.menu-preview-heading h2{font-size:13px;margin:4px 0 8px;letter-spacing:-.01em}
+.menu-preview-heading>span{color:#6fffc3;font-size:9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.menu-track-preview-card canvas{display:block;width:100%;height:146px;border-radius:10px;background:radial-gradient(ellipse at 50% 40%,#203847,#0a141e 72%);border:1px solid #ffffff10}
+.menu-track-facts{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.menu-track-facts span{padding:5px 7px;border-radius:7px;background:#ffffff08;color:#a4b8c6;font-size:8px}
+.menu-lap-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;min-height:60px;align-content:center;padding:6px 0}
+.menu-lap-chip{position:relative;display:grid;place-items:center;gap:3px;min-height:39px;border:1px solid #6fffc33a;border-radius:8px;background:linear-gradient(145deg,#173344,#102431);color:#e8f5f2;font-size:10px;font-weight:900;animation:lap-chip-in .35s ease both}
+.menu-lap-chip small{font-size:6px;letter-spacing:.08em;color:#6fffc3}
+.menu-lap-chip:nth-child(2n){animation-delay:.04s}
+.menu-lap-chip:nth-child(3n){animation-delay:.08s}
+.menu-lap-chip:last-child{border-color:#6fffc3;background:linear-gradient(145deg,#174a43,#102b31)}
+.menu-lap-overflow{display:grid;place-items:center;border:1px dashed #ffffff2a;border-radius:8px;color:#9ab0bf;font-size:9px}
+.menu-preview-weather{display:flex;align-items:center;gap:9px;margin-top:5px;padding:10px;border:1px solid #ffffff14;border-radius:10px;background:#07131d;min-width:0}
+.weather-preview-icon{font-size:22px;filter:drop-shadow(0 0 8px #6fffc355)}
+.menu-preview-weather>div{display:grid;gap:2px;min-width:0}
+.menu-preview-weather b{font-size:9px}
+.menu-preview-weather small{font-size:7px;color:#8fa5b6;line-height:1.4}
+.weather-preview-status{margin-left:auto;color:#6fffc3;font-size:7px;font-weight:900;letter-spacing:.12em}
+.menu-preview-weather.raining{background:linear-gradient(110deg,#102a3a,#07131d);background-size:180% 100%;animation:weather-preview-flow 3s ease-in-out infinite alternate}
+.menu-preview-weather.raining .weather-preview-icon{animation:weather-icon-bob 1.8s ease-in-out infinite}
+.menu-preview-weather.sunny .weather-preview-icon{animation:sun-preview-pulse 2.8s ease-in-out infinite}
+.menu-preview-car-row{display:flex;align-items:center;gap:9px;margin-top:10px;color:#8299a9;font-size:7px;line-height:1.4}
+.preview-car{position:relative;width:50px;height:18px;flex:none;border-radius:70% 40% 35% 35%;background:linear-gradient(180deg,#6fffc3,#168f85);transform:skewX(-16deg);box-shadow:0 3px 10px #39e0ae35;animation:preview-car-float 2.4s ease-in-out infinite}
+.preview-car:before,.preview-car:after{content:"";position:absolute;bottom:-4px;width:9px;height:9px;border:2px solid #91a4b6;border-radius:50%;background:#101820}
+.preview-car:before{left:7px}.preview-car:after{right:7px}
+.preview-car i{position:absolute;left:18px;top:-7px;width:16px;height:11px;border-radius:8px 8px 1px 1px;background:#1c3545}
+.preview-car b{position:absolute;right:-5px;top:5px;width:11px;height:3px;background:#e6f2f1}
+.preview-car em{position:absolute;left:-7px;top:7px;width:12px;height:3px;background:#e6f2f1}
+@keyframes menu-card-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lap-chip-in{from{opacity:0;transform:scale(.86) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes weather-preview-flow{from{background-position:0% 50%}to{background-position:100% 50%}}
+@keyframes weather-icon-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes sun-preview-pulse{0%,100%{filter:drop-shadow(0 0 4px #ffc86f66)}50%{filter:drop-shadow(0 0 12px #ffc86fbb)}}
+@keyframes preview-car-float{0%,100%{transform:translateY(0) skewX(-16deg)}50%{transform:translateY(-2px) skewX(-16deg)}}
+@media(max-width:680px){.menu-preview-grid{grid-template-columns:1fr}.menu-track-preview-card canvas{height:125px}.menu-lap-preview{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.menu-preview-card,.menu-lap-chip,.preview-car,.menu-preview-weather,.weather-preview-icon{animation:none!important}}
+
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
