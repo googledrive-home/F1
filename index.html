@@ -143,6 +143,57 @@ body.session-live main{height:100vh}
 .home-championship-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:180px;overflow:auto;padding:8px;border:1px solid #ffffff1c;border-radius:8px;background:#08111a}
 .home-championship-tracks label{display:flex;align-items:center;gap:6px;padding:5px;color:#c7d6e2;font-size:9px;cursor:pointer}
 .home-championship-tracks input{accent-color:#39e0ae}
+
+/* Race clock and camera-weather screen effects. */
+.race-clock-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:3px 0 7px;padding-bottom:6px;border-bottom:1px solid #ffffff1b}
+.race-clock-row span{font-size:8px;letter-spacing:.16em;color:#8fa5b6;font-weight:850}
+.race-clock-row strong{font-size:14px;color:#6fffc3;font-variant-numeric:tabular-nums}
+.lens-weather{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;mix-blend-mode:screen}
+#mini-hud .clock-stat{min-width:78px}
+#mini-hud #mini-clock{font-size:13px;color:#6fffc3;white-space:nowrap}
+#menu-rain-intensity{accent-color:#6fffc3}
+.menu-field output{color:#6fffc3;font-size:10px}
+.menu-preview-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:12px;margin:2px 0 18px}
+.menu-preview-card{min-width:0;padding:13px;border:1px solid #ffffff1e;border-radius:15px;background:linear-gradient(145deg,#10212d,#0a1621);overflow:hidden;animation:menu-card-enter .55s cubic-bezier(.2,.8,.2,1) both}
+.menu-preview-card:nth-child(2){animation-delay:.08s}
+.menu-preview-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.menu-preview-heading h2{font-size:13px;margin:4px 0 8px;letter-spacing:-.01em}
+.menu-preview-heading>span{color:#6fffc3;font-size:9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.menu-track-preview-card canvas{display:block;width:100%;height:146px;border-radius:10px;background:radial-gradient(ellipse at 50% 40%,#203847,#0a141e 72%);border:1px solid #ffffff10}
+.menu-track-facts{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.menu-track-facts span{padding:5px 7px;border-radius:7px;background:#ffffff08;color:#a4b8c6;font-size:8px}
+.menu-lap-preview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;min-height:60px;align-content:center;padding:6px 0}
+.menu-lap-chip{position:relative;display:grid;place-items:center;gap:3px;min-height:39px;border:1px solid #6fffc33a;border-radius:8px;background:linear-gradient(145deg,#173344,#102431);color:#e8f5f2;font-size:10px;font-weight:900;animation:lap-chip-in .35s ease both}
+.menu-lap-chip small{font-size:6px;letter-spacing:.08em;color:#6fffc3}
+.menu-lap-chip:nth-child(2n){animation-delay:.04s}
+.menu-lap-chip:nth-child(3n){animation-delay:.08s}
+.menu-lap-chip:last-child{border-color:#6fffc3;background:linear-gradient(145deg,#174a43,#102b31)}
+.menu-lap-overflow{display:grid;place-items:center;border:1px dashed #ffffff2a;border-radius:8px;color:#9ab0bf;font-size:9px}
+.menu-preview-weather{display:flex;align-items:center;gap:9px;margin-top:5px;padding:10px;border:1px solid #ffffff14;border-radius:10px;background:#07131d;min-width:0}
+.weather-preview-icon{font-size:22px;filter:drop-shadow(0 0 8px #6fffc355)}
+.menu-preview-weather>div{display:grid;gap:2px;min-width:0}
+.menu-preview-weather b{font-size:9px}
+.menu-preview-weather small{font-size:7px;color:#8fa5b6;line-height:1.4}
+.weather-preview-status{margin-left:auto;color:#6fffc3;font-size:7px;font-weight:900;letter-spacing:.12em}
+.menu-preview-weather.raining{background:linear-gradient(110deg,#102a3a,#07131d);background-size:180% 100%;animation:weather-preview-flow 3s ease-in-out infinite alternate}
+.menu-preview-weather.raining .weather-preview-icon{animation:weather-icon-bob 1.8s ease-in-out infinite}
+.menu-preview-weather.sunny .weather-preview-icon{animation:sun-preview-pulse 2.8s ease-in-out infinite}
+.menu-preview-car-row{display:flex;align-items:center;gap:9px;margin-top:10px;color:#8299a9;font-size:7px;line-height:1.4}
+.preview-car{position:relative;width:50px;height:18px;flex:none;border-radius:70% 40% 35% 35%;background:linear-gradient(180deg,#6fffc3,#168f85);transform:skewX(-16deg);box-shadow:0 3px 10px #39e0ae35;animation:preview-car-float 2.4s ease-in-out infinite}
+.preview-car:before,.preview-car:after{content:"";position:absolute;bottom:-4px;width:9px;height:9px;border:2px solid #91a4b6;border-radius:50%;background:#101820}
+.preview-car:before{left:7px}.preview-car:after{right:7px}
+.preview-car i{position:absolute;left:18px;top:-7px;width:16px;height:11px;border-radius:8px 8px 1px 1px;background:#1c3545}
+.preview-car b{position:absolute;right:-5px;top:5px;width:11px;height:3px;background:#e6f2f1}
+.preview-car em{position:absolute;left:-7px;top:7px;width:12px;height:3px;background:#e6f2f1}
+@keyframes menu-card-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lap-chip-in{from{opacity:0;transform:scale(.86) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes weather-preview-flow{from{background-position:0% 50%}to{background-position:100% 50%}}
+@keyframes weather-icon-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes sun-preview-pulse{0%,100%{filter:drop-shadow(0 0 4px #ffc86f66)}50%{filter:drop-shadow(0 0 12px #ffc86fbb)}}
+@keyframes preview-car-float{0%,100%{transform:translateY(0) skewX(-16deg)}50%{transform:translateY(-2px) skewX(-16deg)}}
+@media(max-width:680px){.menu-preview-grid{grid-template-columns:1fr}.menu-track-preview-card canvas{height:125px}.menu-lap-preview{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.menu-preview-card,.menu-lap-chip,.preview-car,.menu-preview-weather,.weather-preview-icon{animation:none!important}}
+
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 <!-- Modules two imports deep, fetched now rather than once their importers have arrived (after the import map, which must come first). -->
@@ -157,7 +208,7 @@ body.session-live main{height:100vh}
 <header><div><h1><span>AgentiLoop</span> RACING</h1><div class="subtitle">F1 DYNAMICS SIMULATOR · 60 Hz PHYSICS</div></div><nav aria-label="Simulation controls"><button id="profile-open" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="driver-profile-modal"><span id="driver-avatar-initial" class="profile-initial" aria-hidden="true">Y</span><img id="driver-avatar-image" alt="" hidden><span id="driver-profile-name" class="profile-trigger-name">You</span></button><button id="autopilot" aria-pressed="false">Autopilot: off</button><button id="assist" aria-pressed="true" title="Traction control and ABS (I)">Assist: on</button><button id="pause" aria-pressed="false">Pause</button><button id="cockpit" aria-pressed="false">Camera: Chase</button><button id="view" aria-pressed="false">Overview</button><button id="sound" aria-pressed="true">Sound: on</button><button id="field" aria-pressed="true">Opponents: on</button><button id="reset">Reset car</button><button id="hud" aria-pressed="true">HUD: on</button><button id="line" aria-pressed="false">Line: off</button><button id="daytime" hidden>Time: day</button><button id="units">Units: km/h</button><button id="fullscreen" aria-pressed="false">Full screen</button><a id="github" class="btn" href="https://github.com/AgentiLoop/F1" target="_blank" rel="noopener" title="AgentiLoop/F1 on GitHub"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub F1</a><select id="track-select" aria-label="Circuit"><option value="">Stadium test track · race</option></select></nav></header>
 <script>/* Until the module fills the picker, show the circuit being loaded (name saved by its onchange), not the stadium. */
 (k => { if (k) { const o = document.querySelector('#track-select option'); o.value = k; o.textContent = sessionStorage.getItem('track-name:' + k) || 'Loading ' + k + '…'; } })(new URLSearchParams(location.search).get('track'));</script>
-<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 60 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
+<main><section class="scene" aria-label="Driving viewport"><canvas id="track" role="img" aria-label="3D view of an open-wheel race car on a stadium-shaped test circuit"></canvas><canvas id="lens-weather" class="lens-weather" aria-hidden="true"></canvas><div class="tag"><strong>LIVE</strong> &nbsp; THREE.JS 3D · 60 Hz PHYSICS / SI UNITS</div><div id="timing" aria-label="Lap timing"><div id="race-pos" aria-label="Race position"></div><div class="race-clock-row"><span>RACE TIME</span><strong id="race-clock">00:00.000</strong></div><div class="label" id="lap-label">Out lap</div><div id="lap-time">–:––.–––</div><div id="lap-delta"></div><div id="hud-speed" aria-label="Speed"><span id="speed-hud">0</span> <span class="unit">km/h</span></div><div id="pit-info" aria-label="Tyres and pit stop"></div></div><div id="lights" role="img" aria-label="Start lights" hidden><span></span><span></span><span></span><span></span><span></span></div><div id="hud-left"><canvas id="minimap" role="img" aria-label="Track map with car positions"></canvas><div id="status" role="status">Ready · W or ↑ to accelerate</div></div></section><aside aria-label="Vehicle telemetry">
 <div id="pause-state" role="status"></div><div class="label">Speed · Gear <strong id="gear" aria-label="Selected gear">1</strong></div><div><span class="speed" id="speed">0</span> <span class="unit" id="speed-unit">km/h</span></div>
 <div class="pedals"><meter id="in-throttle" min="0" max="1" value="0" aria-label="Throttle command"></meter><meter id="in-brake" min="0" max="1" value="0" aria-label="Brake command"></meter></div><div class="label">Throttle / brake · <span id="input-source">keyboard</span></div>
 <div class="section"><div class="stats"><div><div class="label">Last lap</div><div class="number" id="last-lap">–:––.–––</div></div><div><div class="label">Best lap</div><div class="number" id="best-lap">–:––.–––</div></div></div><div class="sectors" id="sectors"></div></div>
@@ -184,9 +235,14 @@ body.session-live main{height:100vh}
     <div class="menu-field-grid">
       <div class="menu-field"><label for="menu-track-select">Circuit</label><select id="menu-track-select"><option value="">Stadium test track</option></select></div>
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
-      <div class="menu-field"><label for="menu-weather">Weather</label><select id="menu-weather"><option value="clear">Clear</option><option value="cloudy">Cloudy</option><option value="light-rain">Light rain</option><option value="heavy-rain">Heavy rain</option><option value="changing">Changing conditions</option></select></div>
+      <div class="menu-field"><label for="menu-weather">Weather</label><select id="menu-weather"><option value="clear">Clear</option><option value="cloudy">Cloudy</option><option value="light-rain">Light rain</option><option value="heavy-rain">Heavy rain</option><option value="changing">Evolving conditions</option></select></div>
+      <div class="menu-field"><label for="menu-weather-evolution">Weather evolution</label><select id="menu-weather-evolution"><option value="off">Static weather</option><option value="slow">Slow · 8 minute cycle</option><option value="normal" selected>Standard · 4 minute cycle</option><option value="fast">Fast · 2 minute cycle</option></select></div>
+      <div class="menu-field"><label for="menu-time">Time of day</label><select id="menu-time"><option value="dawn">Dawn · warm light</option><option value="day" selected>Day · clear light</option><option value="sunset">Sunset · golden light</option><option value="night">Night race · floodlights</option></select></div>
+      <div class="menu-field"><label for="menu-rain-intensity">Rain / wetness intensity <output id="menu-rain-value">100%</output></label><input id="menu-rain-intensity" type="range" min="0" max="150" step="5" value="100"></div>
       <div class="menu-field"><label for="menu-tyre">Starting tyre</label><select id="menu-tyre"><option value="soft">Soft · dry</option><option value="medium">Medium · dry</option><option value="hard">Hard · dry</option><option value="intermediate">Intermediate · mixed wet</option><option value="wet">Full wet</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
+      <div class="menu-field"><label for="menu-ai-skill">AI difficulty</label><select id="menu-ai-skill"><option value="easy">Rookie</option><option value="normal" selected>Balanced</option><option value="hard">Expert</option></select></div>
+      <div class="menu-field"><label for="menu-grid-position">Starting grid position</label><select id="menu-grid-position"><option value="1">P1 · Pole position</option><option value="2">P2</option><option value="3">P3</option><option value="4">P4</option><option value="5">P5 · Back of grid</option></select></div>
       <div class="menu-field"><label for="menu-laps">Race laps</label><input id="menu-laps" type="number" min="1" max="30" step="1" value="3"></div>
       <div class="menu-field"><label for="menu-quality">Graphics quality</label><select id="menu-quality"><option value="high">High graphics</option><option value="balanced" selected>Balanced</option><option value="performance">Performance</option><option value="manual">Manual</option></select></div>
       <div class="menu-field" id="manual-quality-field" hidden>
@@ -195,6 +251,19 @@ body.session-live main{height:100vh}
         <p id="manual-quality-note">Lower values reduce scenery density and render resolution; higher values increase detail.</p>
       </div>
     </div>
+    <section class="menu-preview-grid" aria-label="Race weekend preview">
+      <article class="menu-preview-card menu-track-preview-card">
+        <div class="menu-preview-heading"><div><span class="overlay-kicker">CIRCUIT PREVIEW</span><h2 id="menu-preview-track-name">Stadium test track</h2></div><span id="menu-preview-track-length">— km</span></div>
+        <canvas id="menu-track-preview" width="520" height="230" role="img" aria-label="Preview of the selected circuit layout with sectors"></canvas>
+        <div class="menu-track-facts"><span id="menu-preview-turns">Track layout</span><span>3 timing sectors</span><span id="menu-preview-weather">DRY TRACK</span></div>
+      </article>
+      <article class="menu-preview-card menu-laps-preview-card">
+        <div class="menu-preview-heading"><div><span class="overlay-kicker">RACE DISTANCE</span><h2 id="menu-preview-laps-title">3 lap Grand Prix</h2></div><span id="menu-preview-laps-total">3 LAPS</span></div>
+        <div id="menu-lap-preview" class="menu-lap-preview" aria-label="Visual preview of each race lap"></div>
+        <div class="menu-preview-weather" id="menu-weather-preview"><span class="weather-preview-icon">☀</span><div><b id="menu-weather-preview-title">Clear conditions</b><small id="menu-weather-preview-copy">Dry surface · standard grip · stable visibility</small></div><span class="weather-preview-status">PREVIEW</span></div>
+        <div class="menu-preview-car-row"><div class="preview-car" aria-hidden="true"><i></i><b></b><em></em></div><span>Race setup preview updates as you change the options</span></div>
+      </article>
+    </section>
     <div class="overlay-actions">
       <button id="start-session" class="overlay-btn primary" type="button">START SESSION →</button>
       <button id="menu-profile" class="overlay-btn" type="button">Driver profile</button>
@@ -233,6 +302,7 @@ body.session-live main{height:100vh}
   <div class="mini-stat"><strong id="mini-speed">0</strong><small id="mini-unit">km/h</small></div>
   <div class="mini-stat"><strong id="mini-gear">1</strong><small>Gear</small></div>
   <div class="mini-stat"><strong id="mini-lap">OUT</strong><small>Lap</small></div>
+  <div class="mini-stat clock-stat"><strong id="mini-clock">00:00.000</strong><small>Race time</small></div>
   <div class="mini-stat"><strong id="mini-weather">DRY</strong><small>Weather</small></div>
   <div class="mini-stat"><strong id="mini-fps">—</strong><small>FPS</small></div>
   <button id="pause-open" type="button">Ⅱ PAUSE</button>
@@ -318,6 +388,7 @@ import { buildChevrons } from './src/chevrons.mjs';
 import { TIMES, TIME_ORDER, TIME_BLEND, lerpTime, setSkyTime, setNightGlow } from './src/sky.mjs';
 import { createStadiumTrack } from './src/track.mjs';
 import { createCircuitTrack } from './src/circuit.mjs';
+import { weatherAtTime } from './src/weather.mjs';
 import { CIRCUITS } from './src/circuits.mjs';
 import { PITS } from './src/pits.mjs';
 import { SCENERY_STYLE, loadScenery, landcoverField } from './src/scenery.mjs';
@@ -745,25 +816,17 @@ const timer = createLapTimer(track, circuitKey ? { lineProgress: 0 } : undefined
 const raceSession = !pageQuery.has('practice') && (!circuitKey || pageQuery.has('race'));
 const WEATHER_MODES = new Set(['clear', 'cloudy', 'light-rain', 'heavy-rain', 'changing']);
 let weatherMode = WEATHER_MODES.has(pageQuery.get('weather')) ? pageQuery.get('weather') : 'clear';
+const WEATHER_EVOLUTION = new Set(['off','slow','normal','fast']);
+let weatherEvolution = WEATHER_EVOLUTION.has(pageQuery.get('evolution')) ? pageQuery.get('evolution') : 'normal';
+const requestedRainIntensity=pageQuery.has('rainIntensity')?Number(pageQuery.get('rainIntensity')):100;
+let weatherIntensity = Math.max(0,Math.min(1.5,Number.isFinite(requestedRainIntensity)?requestedRainIntensity/100:1));
 let weatherElapsed = 0, weatherWetness = 0, weatherRain = 0, weatherLabel = 'Dry';
 function weatherTargets() {
-  if (weatherMode === 'changing') {
-    const phase = weatherElapsed % 240;
-    if (phase < 55) return { wetness: 0, rain: 0, label: 'Dry' };
-    if (phase < 125) return { wetness: 0.38, rain: 0.38, label: 'Light rain' };
-    if (phase < 185) return { wetness: 0.88, rain: 0.82, label: 'Heavy rain' };
-    return { wetness: 0.38, rain: 0.3, label: 'Light rain' };
-  }
-  return ({
-    clear: { wetness: 0, rain: 0, label: 'Dry' },
-    cloudy: { wetness: 0.04, rain: 0, label: 'Cloudy' },
-    'light-rain': { wetness: 0.38, rain: 0.38, label: 'Light rain' },
-    'heavy-rain': { wetness: 0.88, rain: 0.82, label: 'Heavy rain' }
-  })[weatherMode] || { wetness: 0, rain: 0, label: 'Dry' };
+  return weatherAtTime({mode:weatherMode,evolution:weatherEvolution,elapsed:weatherElapsed,intensity:weatherIntensity});
 }
 function updateWeather(delta) {
   if (delta > 0) weatherElapsed += delta;
-  const target = weatherTargets(), blendWet = 1 - Math.exp(-Math.max(0, delta) / 30), blendRain = 1 - Math.exp(-Math.max(0, delta) / 6);
+  const target = weatherTargets(), blendWet = 1 - Math.exp(-Math.max(0, delta) / 34), blendRain = 1 - Math.exp(-Math.max(0, delta) / 4.5);
   weatherWetness += (target.wetness - weatherWetness) * blendWet;
   weatherRain += (target.rain - weatherRain) * blendRain;
   weatherLabel = target.label;
@@ -822,8 +885,9 @@ function reset() {
   // Tyres: start compound ?tyre=soft|medium|hard (default medium); with opponents
   // the two-compound rule applies (races of 2+ laps).
   const query = new URLSearchParams(location.search), tyre = TIRE_COMPOUNDS[query.get('tyre')] ? query.get('tyre') : 'medium';
+  const aiScale = ({easy:0.9,normal:1,hard:1.08})[query.get('ai')] || 1;
   // Solo on a real circuit: a flying start 150 m before the line and DRS in any zone (practice rules); pit stops work as in a race.
-  sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
+  sim = createRace(track, { grid: opponents ? DEFAULT_GRID.slice(0, opponentCount).map(spec=>({...spec,cornerSpeed:spec.cornerSpeed*aiScale,brakeDecel:spec.brakeDecel*aiScale})) : [], start: opponents && !query.has('nostart'), laps: opponents ? Math.max(1, Math.round(Number(query.get('laps')) || (circuitKey ? 3 : 10))) : 0,
     runUp: circuitKey && !opponents ? 150 : 0, freeDrs: !!circuitKey && !opponents, compoundRule: opponents, fixedDt: 1 / 60, options: { weatherWetness: () => weatherWetness }, player: { tyres: [tyre, tyre === 'hard' ? 'medium' : tyre === 'wet' ? 'intermediate' : 'hard'] } });
   sim.entries[0].name = driverProfile.name;
   timer.restart();
@@ -835,6 +899,8 @@ function reset() {
     r.lowActive = false;
     r.wheelAngle.fill(0);
   });
+  const requestedGridSlot=Math.max(1,Math.min(sim.entries.length,Math.round(Number(query.get('grid'))||1)));
+  if(opponents&&requestedGridSlot>1)takeGridSlot(requestedGridSlot);
   keys.clear(); driver.reset(); soundModel.reset(); previousTime = null; snapCamera = true;
   homeRaceReportedForCurrentSession = false;
   if (sessionStarted && raceSession && homeAccountToken) ensureHomeF1Session().catch(error => setHomeAccountStatus(error.message, true));
@@ -982,25 +1048,103 @@ scene.add(sun, sun.target);
 const boxColors = [0x39e0ae, ...DEFAULT_GRID.map(g => g.color)];
 const world = circuitKey ? buildCircuitWorld(track, { boxColors, scenery, quality: qualityMode, qualityScale: performanceScale }) : buildWorld({ halfStraight, radius, roadWidth, boxColors });
 scene.add(world);
-const rainPosition = new Float32Array(180 * 3);
-for (let i = 0; i < 180; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 50; rainPosition[i * 3 + 1] = 4 + Math.random() * 15; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 50; }
+const RAIN_COUNT = 520;
+const rainPosition = new Float32Array(RAIN_COUNT * 3);
+for (let i = 0; i < RAIN_COUNT; i++) { rainPosition[i * 3] = (Math.random() - 0.5) * 55; rainPosition[i * 3 + 1] = 4 + Math.random() * 20; rainPosition[i * 3 + 2] = (Math.random() - 0.5) * 55; }
 const rainGeometry = new THREE.BufferGeometry(); rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPosition, 3));
-const rainMaterial = new THREE.PointsMaterial({ color: 0xc6dce8, size: 0.085, transparent: true, opacity: 0.3, depthWrite: false, sizeAttenuation: true });
+const rainMaterial = new THREE.PointsMaterial({ color: 0xd7eaf6, size: 0.105, transparent: true, opacity: 0.5, depthWrite: false, sizeAttenuation: true });
 const rainPoints = new THREE.Points(rainGeometry, rainMaterial); rainPoints.frustumCulled = false; rainPoints.visible = false; world.add(rainPoints);
-function updateWeatherVisuals(delta) {
-  rainPoints.visible = weatherRain > 0.015;
-  rainMaterial.opacity = 0.12 + weatherRain * 0.28;
-  if (!rainPoints.visible || delta <= 0) return;
-  const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (19 + weatherRain * 12) * delta;
-  for (let i = 0; i < 180; i++) {
-    const k = i * 3; positions[k + 1] -= fall;
-    if (positions[k + 1] < 0) {
-      positions[k] = car.x + (Math.random() - 0.5) * 50;
-      positions[k + 1] = 9 + Math.random() * 14;
-      positions[k + 2] = -car.y + (Math.random() - 0.5) * 50;
+
+// Thin reflective puddle decals sampled directly onto the circuit surface.
+const puddleGroup = new THREE.Group(); puddleGroup.name = 'wet-track-puddles'; world.add(puddleGroup);
+const puddleGeometry = new THREE.CircleGeometry(1, 18);
+const puddleMaterial = new THREE.MeshPhysicalMaterial({ color: 0x8daec2, metalness: 0.26, roughness: 0.055, clearcoat: 1, clearcoatRoughness: 0.035, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+const puddleMeshes = [];
+if (track.point && track.elevation) {
+  for (let i = 0; i < 96; i++) {
+    const s = track.length * (i + 0.5) / 96, offset = (Math.random() - 0.5) * track.roadWidth * 0.76;
+    const [x,y] = track.point(s, offset);
+    if (track.surface(x,y) !== 'asphalt') continue;
+    const puddle = new THREE.Mesh(puddleGeometry, puddleMaterial);
+    puddle.rotation.x = -Math.PI / 2; puddle.rotation.z = Math.random() * Math.PI;
+    puddle.position.set(x, track.elevation(s, offset) + 0.022, -y);
+    const radius = 0.45 + Math.random() * 1.05;
+    puddle.scale.set(radius * (1.2 + Math.random() * 1.7), radius * (0.48 + Math.random() * 0.55), 1);
+    puddle.visible = false; puddleGroup.add(puddle); puddleMeshes.push(puddle);
+  }
+}
+
+// Lens droplets live in screen space, so they move over the camera view rather than the world.
+const lensCanvas = $('lens-weather'), lensContext = lensCanvas.getContext('2d');
+let lensWidth = 1, lensHeight = 1, lensDpr = 1, lensDrops = [], lensSpawn = 0;
+function resizeLensCanvas() {
+  const rect = lensCanvas.getBoundingClientRect();
+  lensWidth = Math.max(1, rect.width); lensHeight = Math.max(1, rect.height);
+  lensDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  lensCanvas.width = Math.round(lensWidth * lensDpr); lensCanvas.height = Math.round(lensHeight * lensDpr);
+  lensContext.setTransform(lensDpr,0,0,lensDpr,0,0);
+}
+resizeLensCanvas();
+window.addEventListener('resize', resizeLensCanvas);
+function updateLensWeather(delta) {
+  const raining = Math.min(1, weatherRain);
+  if (raining > 0.02 && delta > 0) {
+    lensSpawn += delta * (8 + raining * 42);
+    while (lensSpawn >= 1 && lensDrops.length < 90) {
+      lensSpawn -= 1;
+      const radius = 1.1 + Math.random() * (2.2 + raining * 2.4);
+      lensDrops.push({ x: Math.random() * lensWidth, y: -radius, radius, vx: (Math.random() - 0.5) * 10, vy: 20 + Math.random() * 40 + raining * 38, tail: 5 + Math.random() * 16 });
     }
   }
-  rainGeometry.attributes.position.needsUpdate = true;
+  lensContext.clearRect(0,0,lensWidth,lensHeight);
+  lensDrops = lensDrops.filter(drop => {
+    drop.x += drop.vx * delta + (sim?.car?.telemetry?.speed || 0) * delta * 0.035;
+    drop.y += drop.vy * delta;
+    if (drop.y > lensHeight + 25 || drop.x < -20 || drop.x > lensWidth + 20) return false;
+    const r=drop.radius, trail=drop.tail;
+    lensContext.beginPath(); lensContext.moveTo(drop.x-r*0.2,drop.y-trail); lensContext.quadraticCurveTo(drop.x-r*0.4,drop.y-trail*0.25,drop.x,drop.y+r*0.5);
+    lensContext.strokeStyle='rgba(208,235,250,'+(0.08+raining*0.18)+')';lensContext.lineWidth=Math.max(0.7,r*0.42);lensContext.stroke();
+    const gradient=lensContext.createRadialGradient(drop.x-r*0.35,drop.y-r*0.4,0,drop.x,drop.y,r*1.5);
+    gradient.addColorStop(0,'rgba(255,255,255,'+(0.12+raining*0.2)+')');gradient.addColorStop(0.35,'rgba(192,224,244,'+(0.11+raining*0.2)+')');gradient.addColorStop(1,'rgba(113,158,190,0.025)');
+    lensContext.beginPath();lensContext.ellipse(drop.x,drop.y,r*0.8,r*1.25,-0.16,0,Math.PI*2);lensContext.fillStyle=gradient;lensContext.fill();
+    lensContext.beginPath();lensContext.ellipse(drop.x-r*0.2,drop.y-r*0.42,r*0.22,r*0.38,-0.4,0,Math.PI*2);lensContext.fillStyle='rgba(255,255,255,'+(0.18+raining*0.24)+')';lensContext.fill();
+    return true;
+  });
+
+  // Soft sun flare: projected from the selected sun direction, strongest on a dry bright day.
+  const brightness = Math.max(0,Math.min(1,(Number(sun?.intensity)||0)/3.2)) * (timeOfDay==='night'?0:1) * (1-raining*0.82);
+  if (brightness > 0.025) {
+    const sunPoint = sunDir.clone().multiplyScalar(SUN_DISTANCE).project(camera);
+    const sx = sunPoint.x > -1.2 && sunPoint.x < 1.2 ? (sunPoint.x*0.5+0.5)*lensWidth : lensWidth*0.78;
+    const sy = sunPoint.y > -1.2 && sunPoint.y < 1.2 ? (-sunPoint.y*0.5+0.5)*lensHeight : lensHeight*0.18;
+    const glow=lensContext.createRadialGradient(sx,sy,2,sx,sy,Math.min(lensWidth,lensHeight)*0.32);
+    glow.addColorStop(0,'rgba(255,248,218,'+(0.13*brightness)+')');glow.addColorStop(0.18,'rgba(255,216,150,'+(0.075*brightness)+')');glow.addColorStop(1,'rgba(255,216,150,0)');
+    lensContext.fillStyle=glow;lensContext.fillRect(0,0,lensWidth,lensHeight);
+    lensContext.save();lensContext.translate(sx,sy);lensContext.rotate(-0.2);lensContext.fillStyle='rgba(255,241,197,'+(0.04*brightness)+')';lensContext.fillRect(-lensWidth*0.45,-1,lensWidth*0.9,2);lensContext.restore();
+  }
+}
+
+function updateWeatherVisuals(delta) {
+  const raining = weatherRain > 0.015;
+  rainPoints.visible = raining;
+  rainMaterial.opacity = 0.08 + Math.min(1,weatherRain) * 0.48;
+  puddleGroup.visible = weatherWetness > 0.035;
+  puddleMaterial.opacity = puddleGroup.visible ? Math.min(0.38,0.03+weatherWetness*0.42) : 0;
+  for (const puddle of puddleMeshes) puddle.visible = puddleGroup.visible;
+  if (delta > 0 && raining) {
+    const car = sim.car, positions = rainGeometry.attributes.position.array, fall = (28 + weatherRain * 25) * delta;
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      const k = i * 3; positions[k + 1] -= fall;
+      if (positions[k + 1] < 0) {
+        positions[k] = car.x + (Math.random() - 0.5) * 52;
+        positions[k + 1] = 11 + Math.random() * 18;
+        positions[k + 2] = -car.y + (Math.random() - 0.5) * 52;
+      }
+    }
+    rainGeometry.attributes.position.needsUpdate = true;
+  }
+  updateLensWeather(delta);
+  updateCarDroplets(delta);
 }// Real circuits span kilometres: see the far side of the layout from the overview.
 if (circuitKey) camera.far = 2 * world.userData.extent + 3000;
 // Racing-line chevrons (chevrons.mjs, after the RISE sim's): the speed plan of the
@@ -1024,7 +1168,7 @@ $('line').onclick = cycleLine;
 // smoothstep, as in that sim; pressing again mid-fade starts from what's shown.
 const skyDome = world.getObjectByName('rise-sky');
 const timeParam = new URLSearchParams(location.search).get('time');
-let timeOfDay = skyDome && Object.hasOwn(TIMES, timeParam) ? timeParam : 'day';
+let timeOfDay = Object.hasOwn(TIMES, timeParam) ? timeParam : 'day';
 const sunDir = TIMES.day.sun.clone(), SUN_DISTANCE = Math.hypot(35, 70, 25);
 let shownTime = TIMES[timeOfDay], fadeFrom = null, fadeStart = 0;
 function applyTime(t) {
@@ -1033,7 +1177,8 @@ function applyTime(t) {
   hemi.color.set(t.hemiSky); hemi.groundColor.set(t.hemiGround); hemi.intensity = t.hemi;
   scene.environmentIntensity = t.env; renderer.toneMappingExposure = t.exposure;
   scene.fog.color.set(t.fogColor); scene.fog.far = t.fogFar; scene.fog.near = 220 * t.fogFar / 1700;
-  setSkyTime(skyDome, t); setNightGlow(world, t.night);
+  if (skyDome) setSkyTime(skyDome, t);
+  setNightGlow(world, t.night);
 }
 function fadeTime() {
   if (!fadeFrom) return;
@@ -1042,13 +1187,12 @@ function fadeTime() {
   if (b >= 1) { fadeFrom = null; lastShadowUpdate = -Infinity; }
 }
 function cycleTime() {
-  if (!skyDome) return;
   timeOfDay = TIME_ORDER[(TIME_ORDER.indexOf(timeOfDay) + 1) % TIME_ORDER.length];
   fadeFrom = shownTime; fadeStart = performance.now();
   $('daytime').textContent = `Time: ${TIMES[timeOfDay].label}`;
 }
-$('daytime').hidden = !skyDome; $('daytime').onclick = cycleTime;
-if (skyDome) { applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`; }
+$('daytime').hidden = false; $('daytime').onclick = cycleTime;
+applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`;
 let lastChevronPlanAt = -Infinity;
 function updateChevrons(now = performance.now()) {
   if (chev) chev.mode(lineMode);
@@ -1116,10 +1260,45 @@ const cars = [
     wheelAngle: [0, 0, 0, 0], lowActive: false
   }))
 ].map(item => { scene.add(item.model.group, item.lowModel.group); item.lowModel.group.visible = false; return item; });
+
+// Tiny clearcoat droplets sit on the player's bodywork and slide rearward with the airflow.
+function createCarDropletLayer(parent, seed = 0) {
+  const group = new THREE.Group(); group.name = 'car-rain-droplets'; parent.add(group);
+  const material = new THREE.MeshPhysicalMaterial({ color: 0xd6efff, metalness: 0.12, roughness: 0.025, clearcoat: 1, clearcoatRoughness: 0.015, transparent: true, opacity: 0.82, depthWrite: false });
+  const geometry = new THREE.SphereGeometry(0.025, 9, 7);
+  const droplets = [];
+  for (let i = 0; i < 24; i++) {
+    const side = i % 2 ? 1 : -1, row = Math.floor(i / 2);
+    const home = new THREE.Vector3(1.25 - (row % 6) * 0.52, 0.54 + (row % 3) * 0.11, side * (0.16 + (row % 4) * 0.11));
+    const mesh = new THREE.Mesh(geometry, material.clone());
+    mesh.scale.set(0.72 + (i % 3) * 0.2, 0.9 + (i % 4) * 0.22, 0.65 + (i % 2) * 0.22);
+    mesh.position.copy(home); mesh.userData.home = home; mesh.userData.seed = (i + seed) * 0.37; group.add(mesh); droplets.push(mesh);
+  }
+  group.visible = false;
+  return { group, droplets };
+}
+let carDropletLayers = [];
+function updateCarDroplets(delta) {
+  const visible = weatherRain > 0.035, speed = Math.max(0,sim?.car?.telemetry?.speed||0), playerSkin=skins?.[0]??0;
+  carDropletLayers.forEach((layer,index)=>{
+    const active=visible&&index===playerSkin;
+    layer.group.visible=active;
+    if(!active)return;
+    for(const drop of layer.droplets){
+      const home=drop.userData.home;
+      const travel=(0.06+weatherRain*0.42+speed*0.007)*Math.max(0,delta);
+      drop.position.x-=travel*(0.75+(drop.userData.seed%0.7));
+      drop.position.z+=Math.sin(drop.userData.seed+performance.now()*0.0004)*travel*0.08;
+      if(drop.position.x < -1.95){drop.position.copy(home);drop.position.x+=(drop.userData.seed%0.4);}
+      drop.material.opacity=0.5+Math.min(0.42,weatherRain*0.42);
+    }
+  });
+}
 // skins[i]: the livery entry i is drawn in (entry 0 is yours). Taking a grid slot puts you
 // in the car there, so the two entries swap liveries: you drive on in its colours and your
 // old car carries on with the AI. Reset puts you back in the navy car.
 const skins = cars.map((_, i) => i);
+carDropletLayers=cars.map((item,index)=>createCarDropletLayer(item.model.group,index));
 let model;
 // The player's mirrors reflect the scene behind (the rivals' keep the environment reflection).
 function wearSkins(list) {
@@ -1393,6 +1572,10 @@ function render(dt = 0, now = performance.now()) {
   const contact = c.contact && c.contact.speed > 1 && c.time - c.contact.time < 1.5 ? c.contact : null;
   const surface = track.surface(c.x, c.y), impact = c.impact && c.impact.speed > 2 && c.time - c.impact.time < 1.5 ? c.impact : null;
   const start = sim.start, me = sim.entries[0];
+  const raceSeconds = result?.finished && Number.isFinite(result.total) ? result.total : Math.max(0,start.enabled ? sim.time-start.lightsOut : sim.time);
+  const raceClockText = formatLapTime(raceSeconds);
+  $('race-clock').textContent = raceClockText;
+  $('mini-clock').textContent = raceClockText;
   // Tyres and pit stop: compound, most worn tire, request, stop in progress.
   const worn = Math.max(...c.tireWear);
   $('pit-info').innerHTML = `${tyreBadge(c.compound)}${title(c.compound)} · ${(worn * 100).toFixed(1)}% worn${me.stops.length ? ` · ${me.stops.length} stop${me.stops.length > 1 ? 's' : ''}` : ''}${me.pitRequest ? ` · Box: ${title(me.pitRequest)}` : ''}${c.fuel != null ? ` · Fuel ${c.fuel.toFixed(1)} kg` : ''}${drsNote(me)}`;
@@ -1537,6 +1720,68 @@ function openMainMenuFromPause() {
   $('pause-menu').hidden = true; $('mini-hud').hidden = true; $('main-menu').hidden = false;
   document.body.classList.remove('session-live', 'race-paused');
 }
+function menuPreviewPoints() {
+  const key=$('menu-track-select').value, definition=key?CIRCUITS[key]:null, raw=definition?.points;
+  if(raw&&raw.length>=8){
+    const points=[],pairStep=Math.max(1,Math.floor((raw.length/2)/420));
+    if(Array.isArray(raw[0])) for(let i=0;i<raw.length;i+=pairStep)points.push([Number(raw[i][0]),Number(raw[i][1])]);
+    else for(let i=0;i<raw.length;i+=2*pairStep)points.push([Number(raw[i]),Number(raw[i+1])]);
+    if(points.length>6)return points;
+  }
+  return outline;
+}
+function drawMenuTrackPreview() {
+  const preview=$('menu-track-preview'),ctx=preview.getContext('2d'),w=preview.width,h=preview.height;
+  ctx.clearRect(0,0,w,h);
+  const points=menuPreviewPoints();
+  if(!points?.length)return;
+  const bounds=points.reduce((b,p)=>({minX:Math.min(b.minX,p[0]),maxX:Math.max(b.maxX,p[0]),minY:Math.min(b.minY,p[1]),maxY:Math.max(b.maxY,p[1])}),{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity});
+  const pad=28,scale=Math.min((w-pad*2)/Math.max(1,bounds.maxX-bounds.minX),(h-pad*2)/Math.max(1,bounds.maxY-bounds.minY));
+  const ox=(w-(bounds.maxX-bounds.minX)*scale)/2,oy=(h-(bounds.maxY-bounds.minY)*scale)/2;
+  const X=x=>ox+(x-bounds.minX)*scale,Y=y=>h-oy-(y-bounds.minY)*scale;
+  const path=()=>{ctx.beginPath();points.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y)));ctx.closePath();};
+  ctx.lineJoin=ctx.lineCap='round';path();ctx.strokeStyle='#02080d';ctx.lineWidth=25;ctx.stroke();
+  path();ctx.strokeStyle='#d5e1e866';ctx.lineWidth=18;ctx.stroke();
+  path();ctx.strokeStyle='#587485';ctx.lineWidth=12;ctx.stroke();
+  path();ctx.strokeStyle='#6fffc3';ctx.lineWidth=1.8;ctx.setLineDash([4,6]);ctx.stroke();ctx.setLineDash([]);
+  for(const fraction of [1/3,2/3]){
+    const i=Math.floor(points.length*fraction),[x,y]=points[i];ctx.beginPath();ctx.arc(X(x),Y(y),4,0,Math.PI*2);ctx.fillStyle='#ffc86f';ctx.fill();
+    ctx.beginPath();ctx.arc(X(x),Y(y),7,0,Math.PI*2);ctx.strokeStyle='#ffc86f66';ctx.lineWidth=2;ctx.stroke();
+  }
+  const [sx,sy]=points[0],[nx,ny]=points[1],dx=nx-sx,dy=ny-sy,len=Math.hypot(dx,dy)||1,tick=10;
+  ctx.beginPath();ctx.moveTo(X(sx)-dy/len*tick,Y(sy)+dx/len*tick);ctx.lineTo(X(sx)+dy/len*tick,Y(sy)-dx/len*tick);ctx.lineWidth=4;ctx.strokeStyle='#f6fbff';ctx.stroke();
+}
+function updateGrandPrixPreview() {
+  const key=$('menu-track-select').value,definition=key?CIRCUITS[key]:null,laps=Math.max(1,Math.min(30,Math.round(Number($('menu-laps').value)||3)));
+  const name=definition?.name||'Stadium test track',length=Number(definition?.length||track.length),location=definition?.location||'Home test circuit';
+  $('menu-preview-track-name').textContent=name;
+  $('menu-preview-track-length').textContent=(length/1000).toFixed(2)+' km';
+  $('menu-preview-turns').textContent=location;
+  $('menu-preview-laps-title').textContent=laps+' lap Grand Prix';
+  $('menu-preview-laps-total').textContent=laps+' LAPS';
+  const chips=Array.from({length:Math.min(laps,10)},(_,i)=>'<span class="menu-lap-chip"><small>LAP</small>'+(i+1)+'</span>').join('');
+  $('menu-lap-preview').innerHTML=chips+(laps>10?'<span class="menu-lap-overflow">+'+(laps-10)+'</span>':'');
+  const weather=$('menu-weather').value,intensity=Number($('menu-rain-intensity').value)||0,evolution=$('menu-weather-evolution').value;
+  const previews={
+    clear:['☀','Clear conditions','Dry track · maximum dry grip · clear visibility'],
+    cloudy:['☁','Cloudy conditions','Dry surface · soft daylight · stable grip'],
+    'light-rain':['🌦','Light rain','Damp racing line · intermediate grip · spray'],
+    'heavy-rain':['🌧','Heavy rain','Wet surface · full wet tyres recommended · reduced visibility'],
+    changing:['⛈','Evolving weather','Rain bands move through the race · puddles build and drain']
+  };
+  const info=previews[weather]||previews.clear,box=$('menu-weather-preview');
+  box.classList.toggle('raining',intensity>5&&(weather==='light-rain'||weather==='heavy-rain'||weather==='changing'));
+  box.classList.toggle('sunny',weather==='clear');
+  $('menu-weather-preview').querySelector('.weather-preview-icon').textContent=info[0];
+  $('menu-weather-preview-title').textContent=info[1];
+  $('menu-weather-preview-copy').textContent=info[2]+(weather==='changing'?' · '+evolution+' evolution':intensity<5?' · rain intensity 0%':' · intensity '+intensity+'%')+' · '+TIMES[$('menu-time').value].label;
+  const practice=$('menu-session-type').value==='practice';
+  $('menu-ai-skill').disabled=practice;$('menu-grid-position').disabled=practice;$('menu-opponents').disabled=practice;
+  const maxGrid=practice?1:Math.min(5,Number($('menu-opponents').value||1)+1);
+  [...$('menu-grid-position').options].forEach(option=>option.disabled=Number(option.value)>maxGrid);
+  if(Number($('menu-grid-position').value)>maxGrid)$('menu-grid-position').value=String(maxGrid);
+  drawMenuTrackPreview();
+}
 function launchFromMenu() {
   const params = new URLSearchParams(location.search);
   const selectedTrack = $('menu-track-select').value;
@@ -1551,7 +1796,12 @@ function launchFromMenu() {
   }
   const laps = Math.max(1, Math.min(30, Math.round(Number($('menu-laps').value) || (selectedTrack ? 3 : 10))));
   params.set('laps', String(laps));
+  const grid = Math.max(1,Math.min(5,Math.round(Number($('menu-grid-position').value)||1)));params.set('grid',String(grid));
+  const ai = ['easy','normal','hard'].includes($('menu-ai-skill').value)?$('menu-ai-skill').value:'normal';params.set('ai',ai);
   const weather = $('menu-weather').value; if (WEATHER_MODES.has(weather)) params.set('weather', weather); else params.delete('weather');
+  params.set('evolution',$('menu-weather-evolution').value);
+  const selectedTime=$('menu-time').value;params.set('time',Object.hasOwn(TIMES,selectedTime)?selectedTime:'day');
+  params.set('rainIntensity',String(Math.round(Number($('menu-rain-intensity').value)||0)));
   const tyre = $('menu-tyre').value; if (TIRE_COMPOUNDS[tyre]) params.set('tyre', tyre); else params.delete('tyre');
   const quality = $('menu-quality').value;
   if (quality === 'balanced') params.delete('quality'); else params.set('quality', quality);
@@ -1568,11 +1818,17 @@ function launchFromMenu() {
 $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>${Object.entries(CIRCUITS).map(([key, circuit]) => `<option value="${key}">${circuit.name}</option>`).join('')}`;
 $('menu-track-select').value = circuitKey ?? '';
 $('menu-weather').value = weatherMode;
+$('menu-weather-evolution').value = weatherEvolution;
+$('menu-time').value = Object.hasOwn(TIMES,pageQuery.get('time'))?pageQuery.get('time'):'day';
+$('menu-rain-intensity').value = String(Math.round(weatherIntensity*100));
+$('menu-rain-value').textContent = Math.round(weatherIntensity*100)+'%';
+$('menu-ai-skill').value = ['easy','normal','hard'].includes(pageQuery.get('ai'))?pageQuery.get('ai'):'normal';
+$('menu-grid-position').value = String(Math.max(1,Math.min(5,Number(pageQuery.get('grid'))||1)));
 $('menu-tyre').value = TIRE_COMPOUNDS[pageQuery.get('tyre')] ? pageQuery.get('tyre') : 'medium';
 $('menu-session-type').value = pageQuery.has('practice') ? 'practice' : 'race';
 $('menu-opponents').value = String(selectedOpponentCount);
 $('menu-opponents').disabled = $('menu-session-type').value === 'practice';
-$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice'; });
+$('menu-session-type').addEventListener('change', () => { $('menu-opponents').disabled = $('menu-session-type').value === 'practice';$('menu-ai-skill').disabled=$('menu-session-type').value==='practice';$('menu-grid-position').disabled=$('menu-session-type').value==='practice';updateGrandPrixPreview(); });
 $('menu-laps').value = pageQuery.get('laps') || (circuitKey ? 3 : 10);
 $('menu-quality').value = qualityMode;
 $('menu-quality-slider').value = String(Math.round(performanceScale * 100));
@@ -1583,7 +1839,11 @@ function updateManualQualityControls() {
 }
 $('menu-quality').addEventListener('change', updateManualQualityControls);
 $('menu-quality-slider').addEventListener('input', updateManualQualityControls);
+$('menu-rain-intensity').addEventListener('input',()=>{$('menu-rain-value').textContent=$('menu-rain-intensity').value+'%';updateGrandPrixPreview();});
 updateManualQualityControls();
+['menu-track-select','menu-session-type','menu-opponents','menu-laps','menu-weather','menu-weather-evolution','menu-time','menu-ai-skill','menu-grid-position','menu-tyre'].forEach(id=>$(id).addEventListener('change',updateGrandPrixPreview));
+$('menu-laps').addEventListener('input',updateGrandPrixPreview);
+updateGrandPrixPreview();
 $('start-session').addEventListener('click', launchFromMenu);
 $('menu-profile').addEventListener('click', () => $('profile-open').click());
 $('pause-open').addEventListener('click', showPauseMenu);
