@@ -1582,6 +1582,10 @@ function render(dt = 0, now = performance.now()) {
   const contact = c.contact && c.contact.speed > 1 && c.time - c.contact.time < 1.5 ? c.contact : null;
   const surface = track.surface(c.x, c.y), impact = c.impact && c.impact.speed > 2 && c.time - c.impact.time < 1.5 ? c.impact : null;
   const start = sim.start, me = sim.entries[0];
+  const raceSeconds = result?.finished && Number.isFinite(result.total) ? result.total : Math.max(0,start.enabled ? sim.time-start.lightsOut : sim.time);
+  const raceClockText = formatLapTime(raceSeconds);
+  $('race-clock').textContent = raceClockText;
+  $('mini-clock').textContent = raceClockText;
   // Tyres and pit stop: compound, most worn tire, request, stop in progress.
   const worn = Math.max(...c.tireWear);
   $('pit-info').innerHTML = `${tyreBadge(c.compound)}${title(c.compound)} · ${(worn * 100).toFixed(1)}% worn${me.stops.length ? ` · ${me.stops.length} stop${me.stops.length > 1 ? 's' : ''}` : ''}${me.pitRequest ? ` · Box: ${title(me.pitRequest)}` : ''}${c.fuel != null ? ` · Fuel ${c.fuel.toFixed(1)} kg` : ''}${drsNote(me)}`;
