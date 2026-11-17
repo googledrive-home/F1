@@ -722,7 +722,7 @@ test('softer compounds stop shorter and wear faster; fitTires fits a fresh set a
   assert.equal(soft.compound, 'hard');
   assert.deepEqual(soft.tireWear, [0, 0, 0, 0]);
   for (const t of soft.tireTemp) assert.deepEqual(t, { surface: 100, carcass: 100 });
-  assert.throws(() => fitTires(soft, 'wet'), RangeError);
+  assert.throws(() => fitTires(soft, 'ultrasoft'), RangeError);
   assert.equal(createCar().compound, 'medium');
 });
 
