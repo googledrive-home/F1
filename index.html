@@ -237,6 +237,7 @@ body.session-live main{height:100vh}
       <div class="menu-field"><label for="menu-session-type">Session</label><select id="menu-session-type"><option value="race">Grand Prix · Race</option><option value="practice">Practice · Time trial</option></select></div>
       <div class="menu-field"><label for="menu-weather">Weather</label><select id="menu-weather"><option value="clear">Clear</option><option value="cloudy">Cloudy</option><option value="light-rain">Light rain</option><option value="heavy-rain">Heavy rain</option><option value="changing">Evolving conditions</option></select></div>
       <div class="menu-field"><label for="menu-weather-evolution">Weather evolution</label><select id="menu-weather-evolution"><option value="off">Static weather</option><option value="slow">Slow · 8 minute cycle</option><option value="normal" selected>Standard · 4 minute cycle</option><option value="fast">Fast · 2 minute cycle</option></select></div>
+      <div class="menu-field"><label for="menu-time">Time of day</label><select id="menu-time"><option value="dawn">Dawn · warm light</option><option value="day" selected>Day · clear light</option><option value="sunset">Sunset · golden light</option><option value="night">Night race · floodlights</option></select></div>
       <div class="menu-field"><label for="menu-rain-intensity">Rain / wetness intensity <output id="menu-rain-value">100%</output></label><input id="menu-rain-intensity" type="range" min="0" max="150" step="5" value="100"></div>
       <div class="menu-field"><label for="menu-tyre">Starting tyre</label><select id="menu-tyre"><option value="soft">Soft · dry</option><option value="medium">Medium · dry</option><option value="hard">Hard · dry</option><option value="intermediate">Intermediate · mixed wet</option><option value="wet">Full wet</option></select></div>
       <div class="menu-field"><label for="menu-opponents">AI opponents</label><select id="menu-opponents"><option value="1">1 opponent · light</option><option value="2">2 opponents</option><option value="3">3 opponents</option><option value="4">4 opponents · full grid</option></select></div>
@@ -1167,7 +1168,7 @@ $('line').onclick = cycleLine;
 // smoothstep, as in that sim; pressing again mid-fade starts from what's shown.
 const skyDome = world.getObjectByName('rise-sky');
 const timeParam = new URLSearchParams(location.search).get('time');
-let timeOfDay = skyDome && Object.hasOwn(TIMES, timeParam) ? timeParam : 'day';
+let timeOfDay = Object.hasOwn(TIMES, timeParam) ? timeParam : 'day';
 const sunDir = TIMES.day.sun.clone(), SUN_DISTANCE = Math.hypot(35, 70, 25);
 let shownTime = TIMES[timeOfDay], fadeFrom = null, fadeStart = 0;
 function applyTime(t) {
@@ -1176,7 +1177,8 @@ function applyTime(t) {
   hemi.color.set(t.hemiSky); hemi.groundColor.set(t.hemiGround); hemi.intensity = t.hemi;
   scene.environmentIntensity = t.env; renderer.toneMappingExposure = t.exposure;
   scene.fog.color.set(t.fogColor); scene.fog.far = t.fogFar; scene.fog.near = 220 * t.fogFar / 1700;
-  setSkyTime(skyDome, t); setNightGlow(world, t.night);
+  if (skyDome) setSkyTime(skyDome, t);
+  setNightGlow(world, t.night);
 }
 function fadeTime() {
   if (!fadeFrom) return;
@@ -1185,13 +1187,12 @@ function fadeTime() {
   if (b >= 1) { fadeFrom = null; lastShadowUpdate = -Infinity; }
 }
 function cycleTime() {
-  if (!skyDome) return;
   timeOfDay = TIME_ORDER[(TIME_ORDER.indexOf(timeOfDay) + 1) % TIME_ORDER.length];
   fadeFrom = shownTime; fadeStart = performance.now();
   $('daytime').textContent = `Time: ${TIMES[timeOfDay].label}`;
 }
-$('daytime').hidden = !skyDome; $('daytime').onclick = cycleTime;
-if (skyDome) { applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`; }
+$('daytime').hidden = false; $('daytime').onclick = cycleTime;
+applyTime(shownTime); $('daytime').textContent = `Time: ${shownTime.label}`;
 let lastChevronPlanAt = -Infinity;
 function updateChevrons(now = performance.now()) {
   if (chev) chev.mode(lineMode);
@@ -1773,7 +1774,7 @@ function updateGrandPrixPreview() {
   box.classList.toggle('sunny',weather==='clear');
   $('menu-weather-preview').querySelector('.weather-preview-icon').textContent=info[0];
   $('menu-weather-preview-title').textContent=info[1];
-  $('menu-weather-preview-copy').textContent=info[2]+(weather==='changing'?' · '+evolution+' evolution':intensity<5?' · rain intensity 0%':' · intensity '+intensity+'%');
+  $('menu-weather-preview-copy').textContent=info[2]+(weather==='changing'?' · '+evolution+' evolution':intensity<5?' · rain intensity 0%':' · intensity '+intensity+'%')+' · '+TIMES[$('menu-time').value].label;
   const practice=$('menu-session-type').value==='practice';
   $('menu-ai-skill').disabled=practice;$('menu-grid-position').disabled=practice;$('menu-opponents').disabled=practice;
   const maxGrid=practice?1:Math.min(5,Number($('menu-opponents').value||1)+1);
@@ -1799,6 +1800,7 @@ function launchFromMenu() {
   const ai = ['easy','normal','hard'].includes($('menu-ai-skill').value)?$('menu-ai-skill').value:'normal';params.set('ai',ai);
   const weather = $('menu-weather').value; if (WEATHER_MODES.has(weather)) params.set('weather', weather); else params.delete('weather');
   params.set('evolution',$('menu-weather-evolution').value);
+  const selectedTime=$('menu-time').value;params.set('time',Object.hasOwn(TIMES,selectedTime)?selectedTime:'day');
   params.set('rainIntensity',String(Math.round(Number($('menu-rain-intensity').value)||0)));
   const tyre = $('menu-tyre').value; if (TIRE_COMPOUNDS[tyre]) params.set('tyre', tyre); else params.delete('tyre');
   const quality = $('menu-quality').value;
@@ -1817,6 +1819,7 @@ $('menu-track-select').innerHTML = `<option value="">Stadium test track</option>
 $('menu-track-select').value = circuitKey ?? '';
 $('menu-weather').value = weatherMode;
 $('menu-weather-evolution').value = weatherEvolution;
+$('menu-time').value = Object.hasOwn(TIMES,pageQuery.get('time'))?pageQuery.get('time'):'day';
 $('menu-rain-intensity').value = String(Math.round(weatherIntensity*100));
 $('menu-rain-value').textContent = Math.round(weatherIntensity*100)+'%';
 $('menu-ai-skill').value = ['easy','normal','hard'].includes(pageQuery.get('ai'))?pageQuery.get('ai'):'normal';
@@ -1838,7 +1841,7 @@ $('menu-quality').addEventListener('change', updateManualQualityControls);
 $('menu-quality-slider').addEventListener('input', updateManualQualityControls);
 $('menu-rain-intensity').addEventListener('input',()=>{$('menu-rain-value').textContent=$('menu-rain-intensity').value+'%';updateGrandPrixPreview();});
 updateManualQualityControls();
-['menu-track-select','menu-session-type','menu-opponents','menu-laps','menu-weather','menu-weather-evolution','menu-ai-skill','menu-grid-position','menu-tyre'].forEach(id=>$(id).addEventListener('change',updateGrandPrixPreview));
+['menu-track-select','menu-session-type','menu-opponents','menu-laps','menu-weather','menu-weather-evolution','menu-time','menu-ai-skill','menu-grid-position','menu-tyre'].forEach(id=>$(id).addEventListener('change',updateGrandPrixPreview));
 $('menu-laps').addEventListener('input',updateGrandPrixPreview);
 updateGrandPrixPreview();
 $('start-session').addEventListener('click', launchFromMenu);
